@@ -4,17 +4,17 @@ Agentic clinical intake & triage assistant for Brazilian SUS emergency rooms. Bu
 
 ## Tech Stack
 
-| Component | Choice |
-|---|---|
-| Language | Python 3.11 |
-| Package manager | pip + venv |
-| Agent orchestration | LangGraph |
-| Models | MedGemma 4B (images) + MedGemma 27B Text (reasoning) via Vertex AI |
-| FHIR output | `fhir.resources` |
-| UI | Streamlit |
-| Linting | ruff |
-| Formatting | black |
-| Tests | pytest |
+| Component           | Choice                                                             |
+| ------------------- | ------------------------------------------------------------------ |
+| Language            | Python 3.11                                                        |
+| Package manager     | pip + venv                                                         |
+| Agent orchestration | LangGraph                                                          |
+| Models              | MedGemma 4B (images) + MedGemma 27B Text (reasoning) via Vertex AI |
+| FHIR output         | `fhir.resources`                                                   |
+| UI                  | Streamlit                                                          |
+| Linting             | ruff                                                               |
+| Formatting          | black                                                              |
+| Tests               | pytest                                                             |
 
 ## Project Structure
 
@@ -43,19 +43,24 @@ data/
 
 ## Coding Conventions
 
-- Python 3.11, type hints on all function signatures
+- Python 3.12, type hints on all function signatures
 - Format with `black`, lint with `ruff`
 - One agent per file in `src/agents/`
 - All model calls go through `src/models/medgemma.py` — never call models directly from agents
 - Use `logging` module, not `print()` — except in Streamlit UI
 - Docstrings on public functions only (Google style)
 
-## Branch Discipline
+## Team Workflow
 
-- Never push directly to `main`
+- **GitHub Projects is the single source of truth** for what needs doing and who's doing it
+- Check the board before starting work — pick an unassigned issue, assign yourself
+- Never push directly to `main` — all changes via PR, at least 1 review before merge
 - One branch per issue: `feat/issue-number-short-description`
-- All changes via PR, at least 1 review before merge
-- Each agent session works on its own branch
+- Each agent session = one focused task on its own branch
+- Use git worktrees for parallel work: `git worktree add ../worktree-issue-N origin/main`
+- Commit after every completed sub-task — git is memory, not the chat
+- Start fresh agent sessions aggressively — context rot is real
+- Human reviews every PR — agents handle the work, humans handle judgment
 
 ## Environment Setup
 
