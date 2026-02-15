@@ -687,16 +687,28 @@ Each task below maps to a GitHub Issue. Pick your assigned issue, create a branc
 
 For your Claude Code agent to read/update GitHub issues, move cards on the project board, and post to `#medgemma-triage` on Slack, you need two MCP servers configured. This is a **one-time setup per machine**.
 
+#### Credential Ownership
+
+| Credential | Who creates it | Shared or personal |
+|-----------|---------------|-------------------|
+| `GOOGLE_APPLICATION_CREDENTIALS_BASE64` | Roberto (shared via Slack DM) | Shared — same for everyone |
+| `MEDGEMMA_27B_BASE_URL` | Already in `.env.example` | Shared — same for everyone |
+| `MEDGEMMA_4B_BASE_URL` | Already in `.env.example` | Shared — same for everyone |
+| `GITHUB_PERSONAL_ACCESS_TOKEN` | **Each person** creates their own | Personal — never share |
+| `SLACK_BOT_TOKEN` | Roberto (shared via Slack DM) | Shared — same for everyone |
+| `SLACK_TEAM_ID` | Already in `.env.example` | Shared — same for everyone |
+
+> **Quick start:** Copy `.env.example` to `.env`, fill in your own GitHub PAT, and ask Roberto for the GCP credentials and Slack bot token.
+
 #### Prerequisites
 
 1. **Node.js 18+** — needed to run the MCP servers via `npx`
-2. **GitHub Personal Access Token** — with scopes: `repo`, `read:org`, `project`
+2. **GitHub Personal Access Token** — each person creates their own
    - Create at: https://github.com/settings/tokens
-   - Classic token is fine. Make sure `project` scope is included (needed for the board).
-3. **Slack Bot Token** — the `xoxb-*` token from the IntelliDoctor Slack workspace
-   - Ask Roberto for the bot token, or check the app at https://api.slack.com/apps
+   - Classic token with scopes: `repo`, `read:org`, `project`
+3. **Slack Bot Token** — shared team token (ask Roberto via Slack DM)
    - The bot needs scopes: `channels:history`, `channels:read`, `chat:write`, `users:read`
-4. **Slack Team ID** — the workspace ID (starts with `T`)
+4. **Slack Team ID** — already in `.env.example` (`T0AF4E6QX6W`)
 
 #### Step 1: Set environment variables
 
