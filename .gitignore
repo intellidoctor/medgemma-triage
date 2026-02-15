@@ -1,0 +1,31 @@
+# Environment & secrets
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MCP config (contains token references)
+.mcp.json
+
+# Claude local settings
+.claude/settings.local.json
