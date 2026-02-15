@@ -6,7 +6,7 @@ Agentic clinical intake & triage assistant for Brazilian SUS emergency rooms. Bu
 
 | Component           | Choice                                                             |
 | ------------------- | ------------------------------------------------------------------ |
-| Language            | Python 3.11                                                        |
+| Language            | Python 3.12                                                        |
 | Package manager     | pip + venv                                                         |
 | Agent orchestration | LangGraph                                                          |
 | Models              | MedGemma 4B (images) + MedGemma 27B Text (reasoning) via Vertex AI |
