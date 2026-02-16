@@ -231,6 +231,46 @@ class TestParseTriageResponse:
         # Actually the JSON itself contains no valid color word
         assert result["parse_failed"] is True
 
+    def test_nested_json(self) -> None:
+        raw = json.dumps(
+            {
+                "triage_color": "ORANGE",
+                "reasoning": "Severe pain with cardiac risk",
+                "key_discriminators": [
+                    {"name": "chest pain", "severity": "high"},
+                    {"name": "diaphoresis", "severity": "moderate"},
+                ],
+                "confidence": 0.85,
+            }
+        )
+        result = _parse_triage_response(raw)
+        assert result["triage_color"] == "ORANGE"
+        assert result["parse_failed"] is False
+
+    def test_confidence_clamped_above_one(self) -> None:
+        raw = json.dumps(
+            {
+                "triage_color": "GREEN",
+                "reasoning": "Minor",
+                "key_discriminators": [],
+                "confidence": 1.5,
+            }
+        )
+        result = _parse_triage_response(raw)
+        assert result["confidence"] == 1.0
+
+    def test_confidence_clamped_below_zero(self) -> None:
+        raw = json.dumps(
+            {
+                "triage_color": "GREEN",
+                "reasoning": "Minor",
+                "key_discriminators": [],
+                "confidence": -0.3,
+            }
+        )
+        result = _parse_triage_response(raw)
+        assert result["confidence"] == 0.0
+
     def test_json_with_markdown_fences(self) -> None:
         inner = json.dumps(
             {

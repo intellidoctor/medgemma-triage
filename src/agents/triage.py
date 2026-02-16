@@ -232,23 +232,36 @@ def _parse_triage_response(raw: str) -> dict:
     Tier 2: Regex fallback — extract color from text.
     Tier 3: Default to YELLOW with parse_failed flag.
     """
-    # Tier 1: Try to find and parse a JSON object
-    json_match = re.search(r"\{[^{}]*\}", raw, re.DOTALL)
-    if json_match:
-        try:
-            parsed = json.loads(json_match.group())
-            color_str = str(parsed.get("triage_color", "")).upper().strip()
-            valid_colors = {c.value for c in TriageColor}
-            if color_str in valid_colors:
-                return {
-                    "triage_color": color_str,
-                    "reasoning": str(parsed.get("reasoning", "")),
-                    "key_discriminators": parsed.get("key_discriminators", []),
-                    "confidence": float(parsed.get("confidence", 0.7)),
-                    "parse_failed": False,
-                }
-        except (json.JSONDecodeError, ValueError, TypeError):
-            logger.warning("JSON parsing failed, trying regex fallback")
+    # Tier 1: Try to find and parse a JSON object (brace-counting for nested JSON)
+    start = raw.find("{")
+    if start != -1:
+        depth = 0
+        json_str = None
+        for i, ch in enumerate(raw[start:], start):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+            if depth == 0:
+                json_str = raw[start : i + 1]
+                break
+        if json_str:
+            try:
+                parsed = json.loads(json_str)
+                color_str = str(parsed.get("triage_color", "")).upper().strip()
+                valid_colors = {c.value for c in TriageColor}
+                if color_str in valid_colors:
+                    return {
+                        "triage_color": color_str,
+                        "reasoning": str(parsed.get("reasoning", "")),
+                        "key_discriminators": parsed.get("key_discriminators", []),
+                        "confidence": max(
+                            0.0, min(1.0, float(parsed.get("confidence", 0.7)))
+                        ),
+                        "parse_failed": False,
+                    }
+            except (json.JSONDecodeError, ValueError, TypeError):
+                logger.warning("JSON parsing failed, trying regex fallback")
 
     # Tier 2: Regex fallback — look for color mention
     color_pattern = r"\b(RED|ORANGE|YELLOW|GREEN|BLUE)\b"
