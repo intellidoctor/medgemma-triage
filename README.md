@@ -683,6 +683,57 @@ Each task below maps to a GitHub Issue. Pick your assigned issue, create a branc
 
 ---
 
+### Testing & CI
+
+#### Running Tests Locally
+
+```bash
+source .venv/bin/activate
+
+# Unit tests (no credentials needed)
+pytest tests/ -m "not integration" -v
+
+# Integration tests (requires Vertex AI credentials in .env)
+pytest tests/ -m integration -v
+
+# Lint + format
+ruff check src/
+black --check src/ tests/
+```
+
+#### How the Mock Library Works
+
+A project-wide mock in `tests/conftest.py` automatically patches `generate_text` and `analyze_image` from `src.models.medgemma` for all non-integration tests. You don't need `@patch` decorators in your test files — just write tests that call agent code normally, and the mock intercepts model calls.
+
+The mock returns keyword-matched canned responses based on the prompt content:
+
+| Keyword in prompt | Mock returns |
+|---|---|
+| "chest pain" | Triage JSON: ORANGE, priority 2 |
+| "choking" | Triage JSON: RED, priority 1 |
+| "headache" | Triage JSON: YELLOW, priority 3 |
+| "sprained ankle" | Triage JSON: GREEN, priority 4 |
+| "medication refill" | Triage JSON: BLUE, priority 5 |
+| anything else | Generic medical text (plain string) |
+
+`analyze_image` always returns a static finding string.
+
+**To add new canned responses:** edit the `_TRIAGE_RESPONSES` dict in `tests/conftest.py`.
+
+**To write tests that hit real endpoints:** mark them with `@pytest.mark.integration`. The conftest mock skips those tests automatically.
+
+#### CI Pipeline (GitHub Actions)
+
+Every PR to `main` and every push to `main` triggers `.github/workflows/ci.yml`:
+
+1. **Lint** — `ruff check src/`
+2. **Format check** — `black --check src/ tests/`
+3. **Unit tests** — `pytest tests/ -m "not integration" -v`
+
+No credentials or secrets are configured in CI. If any step fails, the PR gets a red check. Fix failures before requesting review.
+
+---
+
 ### Agent Setup: GitHub & Slack MCP Servers
 
 For your Claude Code agent to read/update GitHub issues, move cards on the project board, and post to `#medgemma-triage` on Slack, you need two MCP servers configured. This is a **one-time setup per machine**.
