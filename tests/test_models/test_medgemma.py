@@ -10,6 +10,9 @@ These tests hit real Vertex AI endpoints. They require:
 import io
 
 import pytest
+
+pytestmark = pytest.mark.integration
+
 from PIL import Image
 
 from src.models.medgemma import _get_token, analyze_image, generate_text
@@ -38,8 +41,15 @@ class TestGenerateText:
         assert any(
             term in response_lower
             for term in [
-                "red", "orange", "yellow", "green", "blue",
-                "amber", "immediate", "urgent", "emergency",
+                "red",
+                "orange",
+                "yellow",
+                "green",
+                "blue",
+                "amber",
+                "immediate",
+                "urgent",
+                "emergency",
             ]
         )
 
