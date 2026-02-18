@@ -62,7 +62,7 @@ class TestMockClassify:
             vital_signs=VitalSigns(spo2=88.0),
         )
         result = mock_classify(patient)
-        assert result.triage_color in (TriageColor.RED, TriageColor.ORANGE)
+        assert result.triage_color == TriageColor.ORANGE
 
     def test_high_heart_rate_upgrades(self) -> None:
         patient = PatientData(
@@ -70,8 +70,8 @@ class TestMockClassify:
             vital_signs=VitalSigns(heart_rate=130),
         )
         result = mock_classify(patient)
-        # HR > 120 should upgrade from BLUE to at least YELLOW
-        assert result.triage_color != TriageColor.BLUE
+        # HR > 120 should upgrade from BLUE to YELLOW
+        assert result.triage_color == TriageColor.YELLOW
 
     def test_high_pain_scale_upgrades(self) -> None:
         patient = PatientData(
@@ -82,7 +82,53 @@ class TestMockClassify:
         # Pain >= 8 should upgrade to at least ORANGE
         assert result.triage_color in (TriageColor.RED, TriageColor.ORANGE)
 
-    def test_all_sample_cases_classify(self) -> None:
+    def _classify_sample(self, name: str) -> TriageResult:
+        """Helper: build PatientData from a sample case by name and classify."""
+        case = next(c for c in SAMPLE_CASES if c["name"] == name)
+        vs_kwargs = {}
+        for field in [
+            "heart_rate",
+            "blood_pressure",
+            "respiratory_rate",
+            "temperature",
+            "spo2",
+            "glucose",
+        ]:
+            val = case.get(field)
+            if val and val != 0 and val != 0.0:
+                vs_kwargs[field] = val
+
+        vital_signs = VitalSigns(**vs_kwargs) if vs_kwargs else None
+        patient = PatientData(
+            chief_complaint=case["chief_complaint"],
+            pain_scale=case.get("pain_scale"),
+            vital_signs=vital_signs,
+            age=case.get("age"),
+            sex=case.get("sex"),
+        )
+        return mock_classify(patient)
+
+    def test_sample_maria_silva_orange(self) -> None:
+        result = self._classify_sample("Maria Silva")
+        assert result.triage_color == TriageColor.ORANGE
+
+    def test_sample_joao_santos_yellow(self) -> None:
+        result = self._classify_sample("João Santos")
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_sample_ana_oliveira_green(self) -> None:
+        result = self._classify_sample("Ana Oliveira")
+        assert result.triage_color == TriageColor.GREEN
+
+    def test_sample_carlos_ferreira_blue(self) -> None:
+        result = self._classify_sample("Carlos Ferreira")
+        assert result.triage_color == TriageColor.BLUE
+
+    def test_sample_lucia_pereira_orange(self) -> None:
+        result = self._classify_sample("Lúcia Pereira")
+        assert result.triage_color == TriageColor.ORANGE
+
+    def test_all_sample_cases_have_valid_result(self) -> None:
         for case in SAMPLE_CASES:
             vs_kwargs = {}
             for field in [
@@ -108,7 +154,6 @@ class TestMockClassify:
             )
             result = mock_classify(patient)
             assert isinstance(result, TriageResult)
-            assert result.triage_color in TriageColor
             assert 0.0 <= result.confidence <= 1.0
             assert result.reasoning
             assert result.key_discriminators
@@ -123,6 +168,68 @@ class TestMockClassify:
         result = mock_classify(patient)
         assert result.triage_level
         assert result.max_wait_minutes >= 0
+
+
+# ---------------------------------------------------------------------------
+# Vital-sign boundary tests
+# ---------------------------------------------------------------------------
+
+
+class TestVitalSignBoundaries:
+    """Verify that vital-sign red flags upgrade triage color correctly."""
+
+    def _classify_with_vitals(self, **vs_kwargs: object) -> TriageResult:
+        """Classify a BLUE-baseline patient with given vital signs."""
+        patient = PatientData(
+            chief_complaint="Preciso renovar receita",
+            pain_scale=0,
+            vital_signs=VitalSigns(**vs_kwargs),
+        )
+        return mock_classify(patient)
+
+    def test_low_heart_rate_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(heart_rate=45)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_high_heart_rate_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(heart_rate=125)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_high_respiratory_rate_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(respiratory_rate=35)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_low_respiratory_rate_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(respiratory_rate=8)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_high_temperature_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(temperature=41.0)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_low_temperature_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(temperature=34.0)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_low_glucose_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(glucose=50.0)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_high_glucose_upgrades_to_yellow(self) -> None:
+        result = self._classify_with_vitals(glucose=450.0)
+        assert result.triage_color == TriageColor.YELLOW
+
+    def test_low_systolic_bp_upgrades_to_orange(self) -> None:
+        result = self._classify_with_vitals(blood_pressure="80/50")
+        assert result.triage_color == TriageColor.ORANGE
+
+    def test_high_systolic_bp_upgrades_to_orange(self) -> None:
+        result = self._classify_with_vitals(blood_pressure="210/110")
+        assert result.triage_color == TriageColor.ORANGE
+
+    def test_low_spo2_upgrades_to_orange(self) -> None:
+        result = self._classify_with_vitals(spo2=90.0)
+        assert result.triage_color == TriageColor.ORANGE
 
 
 # ---------------------------------------------------------------------------

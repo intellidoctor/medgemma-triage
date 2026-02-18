@@ -8,6 +8,7 @@ To swap to real agents, change the import in app.py:
     from src.models.medgemma import analyze_image
 """
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -19,6 +20,8 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Keyword-to-color mapping for mock classification
@@ -199,7 +202,11 @@ def _check_vital_red_flags(
             if systolic < 90 or systolic > 200:
                 return TriageColor.ORANGE
         except (ValueError, IndexError):
-            pass
+            logger.warning(
+                "Could not parse blood pressure '%s' — "
+                "vital sign red-flag check skipped",
+                vs.blood_pressure,
+            )
 
     # HR > 120 or < 50 -> at least YELLOW
     if vs.heart_rate is not None and (vs.heart_rate > 120 or vs.heart_rate < 50):

@@ -5,6 +5,7 @@ Usage:
 """
 
 import json
+import logging
 from typing import Optional
 
 import streamlit as st
@@ -34,6 +35,8 @@ from src.ui.mock_services import (
 # from src.models.medgemma import analyze_image
 # from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
 # -------------------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Color display config
@@ -426,6 +429,12 @@ def main() -> None:
         "Auxilia na classificação de risco — nunca substitui o profissional."
     )
 
+    if "mock" in classify_patient.__module__:
+        st.warning(
+            "Modo demonstração — usando dados sintéticos e classificação simulada. "
+            "Não utilizar para decisões clínicas reais."
+        )
+
     _render_sidebar()
 
     col_left, col_right = st.columns([3, 2], gap="large")
@@ -439,17 +448,26 @@ def main() -> None:
             if not form_data["chief_complaint"].strip():
                 st.error("Queixa principal é obrigatória.")
             else:
-                patient_data = _build_patient_data(form_data)
-                result = classify_patient(patient_data)
-                fhir_bundle = build_mock_fhir_bundle(
-                    patient_name=form_data["name"] or "Paciente",
-                    patient_age=form_data["age"] if form_data["age"] > 0 else None,
-                    patient_sex=form_data["sex"],
-                    patient_data=patient_data,
-                    triage_result=result,
-                )
-                st.session_state["triage_result"] = result
-                st.session_state["fhir_bundle"] = fhir_bundle
+                try:
+                    patient_data = _build_patient_data(form_data)
+                    result = classify_patient(patient_data)
+                    fhir_bundle = build_mock_fhir_bundle(
+                        patient_name=form_data["name"] or "Paciente",
+                        patient_age=(
+                            form_data["age"] if form_data["age"] > 0 else None
+                        ),
+                        patient_sex=form_data["sex"],
+                        patient_data=patient_data,
+                        triage_result=result,
+                    )
+                    st.session_state["triage_result"] = result
+                    st.session_state["fhir_bundle"] = fhir_bundle
+                except Exception:
+                    logger.exception("Erro ao classificar paciente")
+                    st.error(
+                        "Ocorreu um erro ao processar a classificação. "
+                        "Tente novamente ou contacte o suporte técnico."
+                    )
 
     with col_right:
         st.subheader("Resultado da triagem")
