@@ -24,8 +24,10 @@ from typing import Annotated, Optional
 from langgraph.graph import END, StateGraph
 from typing_extensions import TypedDict
 
-from src.agents.image_reader import ImageFindings, analyze as analyze_image
-from src.agents.triage import PatientData, TriageResult, classify as classify_patient
+from src.agents.image_reader import ImageFindings
+from src.agents.image_reader import analyze as analyze_image
+from src.agents.triage import PatientData, TriageResult
+from src.agents.triage import classify as classify_patient
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +85,7 @@ def run_image_analysis(state: PipelineState) -> dict:
         updated_patient = patient_data.model_copy(
             update={"image_findings": findings.to_triage_summary()}
         )
-        logger.info(
-            "Image analysis complete: severity=%s", findings.severity.value
-        )
+        logger.info("Image analysis complete: severity=%s", findings.severity.value)
         return {
             "image_findings": findings,
             "patient_data": updated_patient,
@@ -118,8 +118,7 @@ def run_documentation(state: PipelineState) -> dict:
     Stub — will be implemented when issue #6 (FHIR output) lands.
     """
     logger.info(
-        "Documentation node: stub (waiting for #6). "
-        "Returning fhir_bundle=None."
+        "Documentation node: stub (waiting for #6). " "Returning fhir_bundle=None."
     )
     return {"fhir_bundle": None}
 
