@@ -29,19 +29,20 @@ from src.pipeline.orchestrator import (
 @pytest.fixture
 def sample_patient() -> PatientData:
     return PatientData(
-        chief_complaint="Chest pain radiating to left arm",
-        symptoms=["diaphoresis", "nausea"],
-        onset="30 minutes ago",
+        chief_complaint="Dor no peito irradiando para o braço esquerdo",
+        symptoms=["sudorese", "náusea"],
+        onset="30 minutos atrás",
         pain_scale=8,
         vital_signs=VitalSigns(heart_rate=110, blood_pressure="180/100"),
         age=55,
         sex="M",
+        history=["hipertensão", "diabetes tipo 2"],
     )
 
 
 @pytest.fixture
 def minimal_patient() -> PatientData:
-    return PatientData(chief_complaint="Headache")
+    return PatientData(chief_complaint="Dor de cabeça")
 
 
 @pytest.fixture
@@ -50,8 +51,8 @@ def mock_triage_result() -> TriageResult:
         triage_color=TriageColor.ORANGE,
         triage_level="Muito urgente",
         max_wait_minutes=10,
-        reasoning="Chest pain with cardiac risk",
-        key_discriminators=["severe pain", "cardiac risk"],
+        reasoning="Dor torácica com fatores de risco cardíaco",
+        key_discriminators=["dor intensa", "risco cardíaco"],
         confidence=0.85,
         raw_model_response="{}",
     )
@@ -60,11 +61,11 @@ def mock_triage_result() -> TriageResult:
 @pytest.fixture
 def mock_image_findings() -> ImageFindings:
     return ImageFindings(
-        modality="X-ray",
-        description="Mild cardiomegaly",
-        suspected_conditions=["cardiomegaly"],
+        modality="radiografia",
+        description="Cardiomegalia leve",
+        suspected_conditions=["cardiomegalia"],
         severity=ImageSeverity.MODERATE,
-        key_observations=["enlarged cardiac silhouette"],
+        key_observations=["silhueta cardíaca aumentada"],
         confidence=0.75,
         requires_specialist=True,
         raw_model_response="{}",
@@ -140,7 +141,7 @@ class TestRunImageAnalysis:
 
         assert result["image_findings"] is mock_image_findings
         assert result["patient_data"].image_findings is not None
-        assert "cardiomegaly" in result["patient_data"].image_findings.lower()
+        assert "cardiomegalia" in result["patient_data"].image_findings.lower()
 
     def test_returns_empty_when_no_image_bytes(
         self, sample_patient: PatientData

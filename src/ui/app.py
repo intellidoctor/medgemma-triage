@@ -10,6 +10,8 @@ from typing import Optional
 
 import streamlit as st
 
+# --- SWAP POINT: change these imports to use real agents -----------------
+from src.agents.image_reader import analyze as analyze_image_agent
 from src.agents.triage import (
     TRIAGE_LEVELS,
     PatientData,
@@ -17,9 +19,6 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
-
-# --- SWAP POINT: change these imports to use real agents -----------------
-from src.agents.image_reader import analyze as analyze_image_agent
 from src.ui.mock_services import (
     SAMPLE_CASES,
     build_mock_fhir_bundle,
