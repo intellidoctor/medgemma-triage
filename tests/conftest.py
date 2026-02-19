@@ -63,8 +63,52 @@ _DEFAULT_TEXT_RESPONSE = (
     "is warranted."
 )
 
-_DEFAULT_IMAGE_RESPONSE = (
-    "The image shows no acute abnormalities. Recommend clinical correlation."
+_IMAGE_RESPONSES: dict[str, str] = {
+    "wound": json.dumps(
+        {
+            "modality": "photo",
+            "description": "Deep laceration on forearm with active bleeding",
+            "suspected_conditions": ["laceration", "tendon injury"],
+            "severity": "SEVERE",
+            "key_observations": ["exposed tissue", "active bleeding"],
+            "confidence": 0.85,
+            "requires_specialist": True,
+        }
+    ),
+    "rash": json.dumps(
+        {
+            "modality": "photo",
+            "description": "Erythematous maculopapular rash on trunk",
+            "suspected_conditions": ["allergic reaction", "viral exanthem"],
+            "severity": "MODERATE",
+            "key_observations": ["widespread distribution", "no vesicles"],
+            "confidence": 0.7,
+            "requires_specialist": False,
+        }
+    ),
+    "fracture": json.dumps(
+        {
+            "modality": "X-ray",
+            "description": "Displaced fracture of the distal radius",
+            "suspected_conditions": ["Colles fracture"],
+            "severity": "SEVERE",
+            "key_observations": ["cortical disruption", "dorsal angulation"],
+            "confidence": 0.9,
+            "requires_specialist": True,
+        }
+    ),
+}
+
+_DEFAULT_IMAGE_RESPONSE = json.dumps(
+    {
+        "modality": "unknown",
+        "description": "No acute abnormalities identified",
+        "suspected_conditions": [],
+        "severity": "NORMAL",
+        "key_observations": [],
+        "confidence": 0.7,
+        "requires_specialist": False,
+    }
 )
 
 
@@ -77,8 +121,16 @@ def _mock_generate_text(prompt: str, **kwargs: object) -> str:
     return _DEFAULT_TEXT_RESPONSE
 
 
-def _mock_analyze_image(**kwargs: object) -> str:
-    """Return a static image analysis response."""
+def _mock_analyze_image(
+    image: bytes = b"",
+    prompt: str = "",
+    **kwargs: object,
+) -> str:
+    """Return a keyword-matched JSON image analysis response."""
+    prompt_lower = prompt.lower()
+    for keyword, response in _IMAGE_RESPONSES.items():
+        if keyword in prompt_lower:
+            return response
     return _DEFAULT_IMAGE_RESPONSE
 
 

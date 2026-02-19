@@ -18,12 +18,10 @@ from src.agents.triage import (
 )
 
 # --- SWAP POINT: change these imports to use real agents -----------------
+from src.agents.image_reader import analyze as analyze_image_agent
 from src.ui.mock_services import (
     SAMPLE_CASES,
     build_mock_fhir_bundle,
-)
-from src.ui.mock_services import (
-    mock_analyze_image as analyze_image,
 )
 from src.ui.mock_services import (
     mock_classify as classify_patient,
@@ -31,7 +29,6 @@ from src.ui.mock_services import (
 
 # When real agents are ready, uncomment below and remove mock imports:
 # from src.agents.triage import classify as classify_patient
-# from src.models.medgemma import analyze_image
 # from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
 # -------------------------------------------------------------------------
 
@@ -297,9 +294,13 @@ def _render_image_upload() -> None:
         st.image(uploaded, caption=uploaded.name, use_container_width=True)
         image_bytes = uploaded.getvalue()
         mime_type = uploaded.type or "image/jpeg"
-        findings = analyze_image(image_bytes, mime_type)
-        st.session_state["image_findings"] = findings
-        st.info(f"**Achados da imagem:** {findings}")
+        findings = analyze_image_agent(image_bytes, mime_type)
+        st.session_state["image_findings"] = findings.to_triage_summary()
+        severity_display = findings.severity.value
+        st.info(
+            f"**Severidade:** {severity_display}\n\n"
+            f"**Achados:** {findings.description}"
+        )
     else:
         st.session_state["image_findings"] = None
 

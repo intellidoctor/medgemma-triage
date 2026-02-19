@@ -90,3 +90,4 @@ black src/
 - No API keys or credentials in code — use environment variables
 - Keep this file under 2500 tokens — prune session notes, keep rules
 - When an agent makes a mistake, add a rule here
+- Never gloss over or downplay failures — if tests pass but lint/format checks fail, report ALL failures clearly before moving on. Do not say "all good" when there are outstanding errors.
