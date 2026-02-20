@@ -378,13 +378,20 @@ def _render_image_upload() -> None:
         st.image(uploaded, caption=uploaded.name, use_container_width=True)
         image_bytes = uploaded.getvalue()
         mime_type = uploaded.type or "image/jpeg"
-        findings = analyze_image_agent(image_bytes, mime_type)
-        st.session_state["image_findings"] = findings.to_triage_summary()
-        severity_display = findings.severity.value
-        st.info(
-            f"**Severidade:** {severity_display}\n\n"
-            f"**Achados:** {findings.description}"
-        )
+        try:
+            findings = analyze_image_agent(image_bytes, mime_type)
+            st.session_state["image_findings"] = findings.to_triage_summary()
+            severity_display = findings.severity.value
+            st.info(
+                f"**Severidade:** {severity_display}\n\n"
+                f"**Achados:** {findings.description}"
+            )
+        except Exception:
+            logger.exception("Erro ao analisar imagem")
+            st.error(
+                "Ocorreu um erro ao analisar a imagem. "
+                "Tente novamente ou contacte o suporte técnico."
+            )
     else:
         st.session_state["image_findings"] = None
 
