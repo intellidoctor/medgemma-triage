@@ -78,24 +78,7 @@ Brazil's RNDS (Rede Nacional de Dados em Saude — the national health data netw
 >
 > *Sources: [MTS Flowcharts and Discriminators](https://pmc.ncbi.nlm.nih.gov/articles/PMC5016055/), [Reproducibility of MTS multicentre study](https://pubmed.ncbi.nlm.nih.gov/40050005/), [Emergency Triage textbook (Wiley)](https://onlinelibrary.wiley.com/doi/book/10.1002/9781118299029)*
 
-- Show 2-3 examples with reasoning chains (why it chose Orange vs Yellow)
-
-> **A: How will we show this reasoning chain if the model is not a reasoning model?**
->
-> MedGemma 27B Text is a standard generative model, not a chain-of-thought reasoner — but we can **force structured reasoning output via prompt engineering**. A [2024 study using Claude 3.5 Sonnet](https://pmc.ncbi.nlm.nih.gov/articles/PMC11953165/) (also a non-reasoning model) found that *"the two-step structured approach — where the LLM first systematically organizes clinical information into distinct categories (patient history and imaging findings) before making diagnoses — achieved 60.6% diagnostic accuracy compared to 56.5% for baseline zero-shot chain-of-thought prompting."* Structured prompts outperform even explicit "think step by step" instructions.
->
-> **The Manchester system is inherently a decision tree**, which makes this natural. A [MTS validation study](https://pmc.ncbi.nlm.nih.gov/articles/PMC5016055/) describes: *"The MTS is a triage algorithm consisting of 52 flowcharts covering patients' chief signs and symptoms, with each flowchart containing additional signs and symptoms called discriminators such as 'Airway compromise,' 'Severe pain,' or 'Persistent vomiting,' which are ranked by priority."* The same study found *"the correct choice of the discriminator influenced the correct indication of risk level (R² = 0.77) more than the correct choice of the flowchart (R² = 0.16)"* — so our prompt should emphasize discriminator evaluation.
->
-> **Implementation:** Use a structured prompt template that forces MedGemma to output reasoning in 4 explicit steps:
-> 1. **Clinical information organization** — systematically list vitals, symptoms, history
-> 2. **Flowchart selection** — identify which MTS flowchart applies to the chief complaint
-> 3. **Discriminator evaluation** — walk through discriminators from highest to lowest priority, stating for each: name, present (YES/NO), evidence from patient data, and associated priority level
-> 4. **Final classification** — state the priority based on the highest-priority discriminator found
->
-> Each step's output is captured in the `TriageResult` structured response (our triage agent already returns `reasoning` and `key_discriminators` fields). In the Streamlit UI, render each step as an expandable section so the nurse sees the full decision path. This aligns with research on [diagnostic reasoning prompts (Nature Digital Medicine)](https://www.nature.com/articles/s41746-024-01010-1): *"Prompts or guidewords direct the model step by step in producing content in a specific format, with clearly specified sections or types of information that the model sequentially fills in by populating predefined structured templates."*
->
-> *Sources: [Structured Clinical Reasoning Prompt Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC11953165/), [MTS Flowcharts and Discriminators](https://pmc.ncbi.nlm.nih.gov/articles/PMC5016055/), [Diagnostic Reasoning Prompts (Nature)](https://www.nature.com/articles/s41746-024-01010-1)*
-
+- Show 2-3 examples with reasoning chains (why it chose Orange vs Yellow) — MedGemma already outputs `reasoning` and `key_discriminators` fields natively; surface these in the UI
 - Include 1 failure case: "System correctly escalated uncertainty by flagging case for nurse review"
 
 ### MEDIUM PRIORITY: Address Known Manchester/SUS Challenges
@@ -227,6 +210,6 @@ Three converging crises:
 
 # Immediate Next Steps for Project Enhancement
 
-1. Test without mock data
-2. ... (very simple)
-3. ... (very simple)
+1. Test without mock data [done]
+2. Create 5 synthetic validation cases (one per Manchester level) with protocol-derived gold-standard labels and unambiguous discriminators
+3. Display MedGemma's reasoning and key_discriminators in the Streamlit UI as expandable sections (model already outputs structured reasoning — just needs to be surfaced to the nurse)

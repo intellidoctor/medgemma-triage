@@ -1,5 +1,6 @@
 {
   "id": "case_03",
+  "lang": "en",
   "title": "Minor musculoskeletal injury — ankle sprain",
   "source": "Synthetic case based on Manchester Triage System flowchart 'Limb Problems'",
   "expected_triage": null,

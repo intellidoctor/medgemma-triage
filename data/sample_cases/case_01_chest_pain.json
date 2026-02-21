@@ -1,5 +1,6 @@
 {
   "id": "case_01",
+  "lang": "en",
   "title": "Acute chest pain with cardiac risk factors",
   "source": "Synthetic case based on Manchester Triage System flowchart 'Chest Pain'",
   "expected_triage": null,

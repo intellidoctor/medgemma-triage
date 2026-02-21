@@ -6,6 +6,8 @@ Usage:
 
 import json
 import logging
+import time
+from pathlib import Path
 from typing import Optional
 
 import streamlit as st
@@ -19,14 +21,62 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
+from src.agents.triage import classify as real_classify
 from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
-from src.ui.mock_services import get_sample_cases
 from src.ui.mock_services import mock_classify as classify_patient
 from src.ui.strings import get_strings
 
 # -------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
+
+# Show INFO-level logs in the terminal running streamlit
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+)
+
+# ---------------------------------------------------------------------------
+# Test case loader (data/sample_cases/*.json → flat form dict)
+# ---------------------------------------------------------------------------
+
+_CASES_DIR = Path("data/sample_cases")
+
+
+def _load_test_cases(lang: str = "pt") -> list[dict]:
+    """Load JSON test cases filtered by language."""
+    cases: list[dict] = []
+    for path in sorted(_CASES_DIR.glob("case_*.json")):
+        with open(path) as f:
+            raw = json.load(f)
+        if raw.get("lang", "en") != lang:
+            continue
+        p = raw["patient"]
+        vs = p.get("vital_signs", {})
+        flat = {
+            "name": p.get("name", ""),
+            "age": p.get("age", 0),
+            "sex": p.get("sex", "M"),
+            "chief_complaint": p.get("chief_complaint", ""),
+            "symptoms": ", ".join(p.get("symptoms", [])),
+            "onset": p.get("onset", ""),
+            "pain_scale": p.get("pain_scale", 0),
+            "heart_rate": vs.get("heart_rate", 0),
+            "blood_pressure": vs.get("blood_pressure", ""),
+            "respiratory_rate": vs.get("respiratory_rate", 0),
+            "temperature": vs.get("temperature", 0.0),
+            "spo2": vs.get("spo2", 0.0),
+            "glucose": vs.get("glucose", 0.0),
+            "history": ", ".join(p.get("history", [])),
+            "medications": ", ".join(p.get("medications", [])),
+            "allergies": ", ".join(p.get("allergies", [])),
+            "notes": p.get("notes", ""),
+            "_test_case_id": raw.get("id", ""),
+            "_test_case_title": raw.get("title", ""),
+        }
+        cases.append(flat)
+    return cases
+
 
 # ---------------------------------------------------------------------------
 # Color display config
@@ -148,6 +198,7 @@ def _init_session_state() -> None:
         "fhir_bundle": None,
         "image_findings": None,
         "selected_case": None,
+        "use_real_model": False,
         "lang": "pt",
     }
     for key, value in defaults.items():
@@ -186,32 +237,62 @@ def _render_sidebar(s: dict[str, str], lang: str) -> None:
             f'<h3 style="color: #B8B0D8 !important;">{s["sidebar_header"]}</h3>',
             unsafe_allow_html=True,
         )
-        st.divider()
-        st.header(s["sidebar_sample_cases"])
-        cases = get_sample_cases(lang)
-        case_names = [s["sidebar_select_placeholder"]] + [c["name"] for c in cases]
+        # --- Sample cases (mock) — hidden for now ---
+        # st.divider()
+        # st.header(s["sidebar_sample_cases"])
+        # cases = get_sample_cases(lang)
+        # case_names = [s["sidebar_select_placeholder"]] + [
+        #     c["name"] for c in cases
+        # ]
+        # selected = st.selectbox(
+        #     s["sidebar_load_case"],
+        #     case_names,
+        #     key="case_selector",
+        # )
+        # if selected != s["sidebar_select_placeholder"]:
+        #     for case in cases:
+        #         if case["name"] == selected:
+        #             st.session_state["selected_case"] = case
+        #             st.session_state["use_real_model"] = False
+        #             break
+        # else:
+        #     if not st.session_state.get("use_real_model"):
+        #         st.session_state["selected_case"] = None
 
-        # Handle pending clear — reset widget key before it is instantiated
+        # Handle pending resets before widgets are instantiated
         if st.session_state.get("_pending_clear"):
-            st.session_state["case_selector"] = s["sidebar_select_placeholder"]
+            st.session_state["test_case_selector"] = s["sidebar_select_placeholder"]
             st.session_state["_pending_clear"] = False
 
-        selected = st.selectbox(
-            s["sidebar_load_case"],
-            case_names,
-            key="case_selector",
+        # Test cases (real MedGemma)
+        st.divider()
+        st.header(s.get("sidebar_test_cases", "Casos de teste"))
+        test_cases = _load_test_cases(lang)
+        test_names = [s["sidebar_select_placeholder"]] + [
+            f"{tc['_test_case_id']}: {tc['name']}" for tc in test_cases
+        ]
+
+        test_selected = st.selectbox(
+            s.get("sidebar_load_test_case", "Load test case (MedGemma)"),
+            test_names,
+            key="test_case_selector",
         )
 
-        if selected != s["sidebar_select_placeholder"]:
-            for case in cases:
-                if case["name"] == selected:
-                    st.session_state["selected_case"] = case
+        if test_selected != s["sidebar_select_placeholder"]:
+            for tc in test_cases:
+                label = f"{tc['_test_case_id']}: {tc['name']}"
+                if label == test_selected:
+                    st.session_state["selected_case"] = tc
+                    st.session_state["use_real_model"] = True
                     break
         else:
             st.session_state["selected_case"] = None
+            st.session_state["use_real_model"] = False
 
+        st.divider()
         if st.button(s["sidebar_clear"]):
             st.session_state["selected_case"] = None
+            st.session_state["use_real_model"] = False
             st.session_state["triage_result"] = None
             st.session_state["fhir_bundle"] = None
             st.session_state["image_findings"] = None
@@ -543,8 +624,7 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    if "mock" in classify_patient.__module__:
-        st.warning(s["demo_warning"])
+    use_real = st.session_state.get("use_real_model", False)
 
     _render_sidebar(s, lang)
 
@@ -561,7 +641,22 @@ def main() -> None:
             else:
                 try:
                     patient_data = _build_patient_data(form_data)
-                    result = classify_patient(patient_data, lang=lang)
+                    if use_real:
+                        logger.info(
+                            "\033[1;34m\U0001f3e5 Starting real MedGemma "
+                            "triage classification...\033[0m"
+                        )
+                        t0 = time.time()
+                        result = real_classify(patient_data, lang=lang)
+                        elapsed = time.time() - t0
+                        logger.info(
+                            "\033[1;32m\U0001f3c1 MedGemma result: %s "
+                            "in %.1fs\033[0m",
+                            result.triage_color.value,
+                            elapsed,
+                        )
+                    else:
+                        result = classify_patient(patient_data, lang=lang)
                     fhir_bundle = build_mock_fhir_bundle(
                         patient_name=form_data["name"] or "Paciente",
                         patient_age=(
@@ -574,7 +669,9 @@ def main() -> None:
                     st.session_state["triage_result"] = result
                     st.session_state["fhir_bundle"] = fhir_bundle
                 except Exception:
-                    logger.exception("Error classifying patient")
+                    logger.exception(
+                        "\033[1;31m\U0000274c Error classifying patient\033[0m"
+                    )
                     st.error(s["classification_error"])
 
     with col_right:

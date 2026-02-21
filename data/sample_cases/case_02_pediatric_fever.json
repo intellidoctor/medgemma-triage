@@ -1,5 +1,6 @@
 {
   "id": "case_02",
+  "lang": "en",
   "title": "Pediatric high fever with respiratory distress",
   "source": "Synthetic case based on Manchester Triage System flowcharts 'Worried parent' and 'Shortness of breath in children'",
   "expected_triage": null,

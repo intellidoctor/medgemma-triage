@@ -129,7 +129,8 @@ def generate_text(
         EnvironmentError: On missing configuration.
     """
     logger.info(
-        "MedGemma 27B request — prompt=%d chars, max_tokens=%d, temp=%.2f",
+        "\033[35m\U0001f680 MedGemma 27B API call — "
+        "prompt=%d chars, max_tokens=%d, temp=%.2f\033[0m",
         len(prompt),
         max_tokens,
         temperature,
@@ -148,7 +149,10 @@ def generate_text(
         temperature=temperature,
     )
     result = response.choices[0].message.content
-    logger.info("MedGemma 27B response — %d chars", len(result))
+    logger.info(
+        "\033[35m\U00002705 MedGemma 27B done — %d chars returned\033[0m",
+        len(result),
+    )
     return result
 
 

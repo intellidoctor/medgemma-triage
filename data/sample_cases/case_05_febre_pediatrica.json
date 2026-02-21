@@ -1,0 +1,28 @@
+{
+  "id": "case_05",
+  "lang": "pt",
+  "title": "Febre alta pediátrica com desconforto respiratório",
+  "source": "Caso sintético baseado nos fluxogramas do Protocolo de Manchester 'Pais preocupados' e 'Dispneia em crianças'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Ana Beatriz Santos",
+    "age": 4,
+    "sex": "F",
+    "chief_complaint": "Febre alta há 2 dias com piora da tosse e dificuldade para respirar desde hoje de manhã",
+    "symptoms": ["febre", "tosse produtiva", "taquipneia", "inapetência", "irritabilidade", "coriza"],
+    "onset": "Febre iniciou há 2 dias, dificuldade respiratória piorou hoje de manhã",
+    "pain_scale": 3,
+    "vital_signs": {
+      "heart_rate": 142,
+      "blood_pressure": "90/55",
+      "respiratory_rate": 38,
+      "temperature": 39.4,
+      "spo2": 93.0
+    },
+    "history": ["otite média de repetição", "vacinação em dia"],
+    "medications": ["paracetamol administrado há 2 horas"],
+    "allergies": [],
+    "notes": "Criança alerta, chorando mas consolável. Tiragem intercostal leve. Sem estridor. Aceitando pequenos volumes de líquido."
+  }
+}

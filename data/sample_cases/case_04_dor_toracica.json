@@ -1,0 +1,29 @@
+{
+  "id": "case_04",
+  "lang": "pt",
+  "title": "Dor torácica aguda com fatores de risco cardíaco",
+  "source": "Caso sintético baseado no fluxograma do Protocolo de Manchester 'Dor Torácica'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Roberto Silva",
+    "age": 62,
+    "sex": "M",
+    "chief_complaint": "Dor torácica em aperto irradiando para braço esquerdo e mandíbula, iniciou há 45 minutos em repouso",
+    "symptoms": ["dor torácica", "sudorese intensa", "náusea", "falta de ar", "dor irradiando para braço esquerdo"],
+    "onset": "45 minutos atrás, início súbito em repouso",
+    "pain_scale": 9,
+    "vital_signs": {
+      "heart_rate": 108,
+      "blood_pressure": "178/105",
+      "respiratory_rate": 24,
+      "temperature": 36.8,
+      "spo2": 95.0,
+      "glucose": 180.0
+    },
+    "history": ["hipertensão", "diabetes tipo 2", "dislipidemia", "tabagista 30 maços-ano"],
+    "medications": ["metoprolol", "lisinopril", "atorvastatina", "metformina"],
+    "allergies": ["aspirina"],
+    "notes": "Paciente aparenta ansiedade e sudorese profusa. ECG ainda não realizado."
+  }
+}
