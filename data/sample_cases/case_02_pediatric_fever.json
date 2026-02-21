@@ -1,0 +1,27 @@
+{
+  "id": "case_02",
+  "title": "Pediatric high fever with respiratory distress",
+  "source": "Synthetic case based on Manchester Triage System flowcharts 'Worried parent' and 'Shortness of breath in children'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Emma Chen",
+    "age": 4,
+    "sex": "F",
+    "chief_complaint": "High fever for 2 days with worsening cough and difficulty breathing since this morning",
+    "symptoms": ["fever", "productive cough", "tachypnea", "decreased appetite", "irritability", "rhinorrhea"],
+    "onset": "Fever started 2 days ago, breathing difficulty worsened this morning",
+    "pain_scale": 3,
+    "vital_signs": {
+      "heart_rate": 142,
+      "blood_pressure": "90/55",
+      "respiratory_rate": 38,
+      "temperature": 39.4,
+      "spo2": 93.0
+    },
+    "history": ["recurrent otitis media", "up to date on vaccinations"],
+    "medications": ["acetaminophen given 2 hours ago"],
+    "allergies": [],
+    "notes": "Child is alert and crying but consolable. Mild intercostal retractions noted. No stridor. Drinking small amounts of fluid."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "case_03",
+  "title": "Minor musculoskeletal injury — ankle sprain",
+  "source": "Synthetic case based on Manchester Triage System flowchart 'Limb Problems'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "David Park",
+    "age": 28,
+    "sex": "M",
+    "chief_complaint": "Twisted right ankle playing basketball about 2 hours ago, swelling and pain when walking",
+    "symptoms": ["ankle swelling", "pain on weight-bearing", "mild bruising"],
+    "onset": "2 hours ago during basketball game",
+    "pain_scale": 4,
+    "vital_signs": {
+      "heart_rate": 76,
+      "blood_pressure": "122/78",
+      "respiratory_rate": 16,
+      "temperature": 36.6,
+      "spo2": 99.0
+    },
+    "history": [],
+    "medications": [],
+    "allergies": ["penicillin"],
+    "notes": "Patient able to walk with a limp. No deformity noted. Distal pulses intact, sensation normal. Mild swelling over lateral malleolus."
+  }
+}

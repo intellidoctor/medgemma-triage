@@ -128,6 +128,12 @@ def generate_text(
         openai.APIError: On API failures.
         EnvironmentError: On missing configuration.
     """
+    logger.info(
+        "MedGemma 27B request — prompt=%d chars, max_tokens=%d, temp=%.2f",
+        len(prompt),
+        max_tokens,
+        temperature,
+    )
     client = _make_client("MEDGEMMA_27B_BASE_URL")
 
     messages: list[dict] = []
@@ -141,7 +147,9 @@ def generate_text(
         max_tokens=max_tokens,
         temperature=temperature,
     )
-    return response.choices[0].message.content
+    result = response.choices[0].message.content
+    logger.info("MedGemma 27B response — %d chars", len(result))
+    return result
 
 
 def analyze_image(
