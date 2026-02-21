@@ -275,7 +275,9 @@ class TestRunPipeline:
 
         assert result["triage_result"].triage_color == TriageColor.ORANGE
         assert result.get("image_findings") is None
-        assert result["fhir_bundle"] is None
+        assert result["fhir_bundle"] is not None
+        assert result["fhir_bundle"]["resourceType"] == "Bundle"
+        assert len(result["fhir_bundle"]["entry"]) == 4
         assert result["errors"] == []
 
     def test_pipeline_with_image(

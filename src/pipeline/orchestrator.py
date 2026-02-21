@@ -24,6 +24,7 @@ from typing import Annotated, Optional
 from langgraph.graph import END, StateGraph
 from typing_extensions import TypedDict
 
+from src.agents.documentation import generate_fhir_bundle
 from src.agents.image_reader import ImageFindings
 from src.agents.image_reader import analyze as analyze_image
 from src.agents.triage import PatientData, TriageResult
@@ -113,14 +114,26 @@ def run_triage(state: PipelineState) -> dict:
 
 
 def run_documentation(state: PipelineState) -> dict:
-    """Generate FHIR documentation from triage results.
+    """Generate FHIR R4 Bundle from triage results."""
+    triage_result = state.get("triage_result")
+    if not triage_result:
+        logger.warning("No triage result available, skipping FHIR generation")
+        return {"fhir_bundle": None}
 
-    Stub — will be implemented when issue #6 (FHIR output) lands.
-    """
-    logger.info(
-        "Documentation node: stub (waiting for #6). " "Returning fhir_bundle=None."
-    )
-    return {"fhir_bundle": None}
+    patient_data: PatientData = state["patient_data"]
+
+    try:
+        bundle = generate_fhir_bundle(
+            patient_data=patient_data,
+            triage_result=triage_result,
+        )
+        logger.info(
+            "FHIR Bundle generated with %d entries", len(bundle.get("entry", []))
+        )
+        return {"fhir_bundle": bundle}
+    except Exception as exc:
+        logger.exception("FHIR generation failed")
+        return {"errors": [f"FHIR generation failed: {exc}"], "fhir_bundle": None}
 
 
 # ---------------------------------------------------------------------------

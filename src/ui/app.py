@@ -19,17 +19,10 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
-from src.ui.mock_services import (
-    SAMPLE_CASES,
-    build_mock_fhir_bundle,
-)
-from src.ui.mock_services import (
-    mock_classify as classify_patient,
-)
+from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
+from src.ui.mock_services import SAMPLE_CASES
+from src.ui.mock_services import mock_classify as classify_patient
 
-# When real agents are ready, uncomment below and remove mock imports:
-# from src.agents.triage import classify as classify_patient
-# from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
 # -------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
