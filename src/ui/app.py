@@ -10,6 +10,8 @@ from typing import Optional
 
 import streamlit as st
 
+# --- SWAP POINT: change these imports to use real agents -----------------
+from src.agents.image_reader import analyze as analyze_image_agent
 from src.agents.triage import (
     TRIAGE_LEVELS,
     PatientData,
@@ -17,14 +19,9 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
-
-# --- SWAP POINT: change these imports to use real agents -----------------
 from src.ui.mock_services import (
     SAMPLE_CASES,
     build_mock_fhir_bundle,
-)
-from src.ui.mock_services import (
-    mock_analyze_image as analyze_image,
 )
 from src.ui.mock_services import (
     mock_classify as classify_patient,
@@ -32,7 +29,6 @@ from src.ui.mock_services import (
 
 # When real agents are ready, uncomment below and remove mock imports:
 # from src.agents.triage import classify as classify_patient
-# from src.models.medgemma import analyze_image
 # from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
 # -------------------------------------------------------------------------
 
@@ -56,9 +52,86 @@ _COLOR_MAP: dict[TriageColor, dict[str, str]] = {
 # ---------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title="Triagem SUS",
+    page_title="Intellidoctor — Triagem SUS",
     page_icon="\U0001f3e5",
     layout="wide",
+)
+
+# ---------------------------------------------------------------------------
+# Custom CSS to match Intellidoctor brand palette
+# ---------------------------------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #27273F;
+    }
+    [data-testid="stSidebar"] * {
+        color: #E8E5F0 !important;
+    }
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stButton button {
+        color: #E8E5F0 !important;
+    }
+    /* Sidebar dropdown — dark background with visible text */
+    [data-testid="stSidebar"] [data-baseweb="select"],
+    [data-testid="stSidebar"] [data-baseweb="select"] > div,
+    [data-testid="stSidebar"] [data-baseweb="select"] > div > div,
+    [data-testid="stSidebar"] [data-baseweb="select"] input {
+        background-color: #3A3A55 !important;
+        color: #E8E5F0 !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="select"] * {
+        color: #E8E5F0 !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="select"] svg {
+        fill: #E8E5F0 !important;
+    }
+    /* Sidebar button — outlined style with visible text */
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: transparent;
+        border: 1px solid #8776F6;
+        color: #E8E5F0 !important;
+    }
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: #8776F6;
+        color: #FFFFFF !important;
+    }
+    [data-testid="stSidebar"] hr {
+        border-color: #4A4660;
+    }
+
+    /* Primary button (Classificar Paciente) */
+    .stButton > button[kind="primary"],
+    .stFormSubmitButton > button {
+        background-color: #8776F6;
+        border-color: #8776F6;
+        color: #FFFFFF !important;
+    }
+    .stFormSubmitButton > button:hover {
+        background-color: #7565E0;
+        border-color: #7565E0;
+    }
+
+    /* Expander headers */
+    .streamlit-expanderHeader {
+        color: #2D2B3D;
+    }
+
+    /* Progress bar */
+    .stProgress > div > div > div > div {
+        background-color: #8776F6;
+    }
+
+    /* Subheader accent */
+    h2, h3 {
+        color: #2D2B3D !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
 
@@ -89,6 +162,11 @@ _init_session_state()
 
 def _render_sidebar() -> None:
     with st.sidebar:
+        st.markdown(
+            '<h3 style="color: #B8B0D8 !important;">Protocolo Manchester</h3>',
+            unsafe_allow_html=True,
+        )
+        st.divider()
         st.header("Casos de exemplo")
         case_names = ["(selecione)"] + [c["name"] for c in SAMPLE_CASES]
         selected = st.selectbox(
@@ -300,9 +378,20 @@ def _render_image_upload() -> None:
         st.image(uploaded, caption=uploaded.name, use_container_width=True)
         image_bytes = uploaded.getvalue()
         mime_type = uploaded.type or "image/jpeg"
-        findings = analyze_image(image_bytes, mime_type)
-        st.session_state["image_findings"] = findings
-        st.info(f"**Achados da imagem:** {findings}")
+        try:
+            findings = analyze_image_agent(image_bytes, mime_type)
+            st.session_state["image_findings"] = findings.to_triage_summary()
+            severity_display = findings.severity.value
+            st.info(
+                f"**Severidade:** {severity_display}\n\n"
+                f"**Achados:** {findings.description}"
+            )
+        except Exception:
+            logger.exception("Erro ao analisar imagem")
+            st.error(
+                "Ocorreu um erro ao analisar a imagem. "
+                "Tente novamente ou contacte o suporte técnico."
+            )
     else:
         st.session_state["image_findings"] = None
 
@@ -423,10 +512,13 @@ def _render_fhir_output(fhir_bundle: dict) -> None:
 
 def main() -> None:
     """Main entry point for the Streamlit dashboard."""
-    st.title("Assistente de Triagem — Protocolo Manchester")
-    st.caption(
+    st.image("public/logo_horizontal.png", width=280)
+    st.markdown(
+        '<p style="color: #6B6880; margin-top: -0.5rem; margin-bottom: 1.5rem;">'
         "Sistema de apoio à triagem para enfermeiros do SUS. "
         "Auxilia na classificação de risco — nunca substitui o profissional."
+        "</p>",
+        unsafe_allow_html=True,
     )
 
     if "mock" in classify_patient.__module__:
