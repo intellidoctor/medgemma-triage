@@ -216,6 +216,17 @@ def build_fhir_bundle(
     observation_id = _make_id()
     condition_id = _make_id()
 
+    # FHIR Bundle: a container for a group of related resources.
+    # Used to package resources for sending, retrieval, or batch
+    # processing. Type "collection" groups the main components of
+    # an ER triage episode (Patient, Encounter, Observation, and
+    # Condition) into a single, portable package.
+    #
+    # FHIR BundleEntry: a wrapper for one resource inside the
+    # Bundle. Maintains references between resources and supplies
+    # additional metadata. Each entry here holds a core clinical
+    # resource generated during the triage process.
+
     bundle = Bundle(
         id=_make_id(),
         type="collection",

@@ -20,6 +20,7 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
+from src.ui.strings import get_strings
 
 logger = logging.getLogger(__name__)
 
@@ -84,69 +85,28 @@ _BLUE_KEYWORDS: list[str] = [
     "consulta de rotina",
 ]
 
-# ---------------------------------------------------------------------------
-# Reasoning templates (Portuguese)
-# ---------------------------------------------------------------------------
-
-_REASONING: dict[TriageColor, str] = {
-    TriageColor.RED: (
-        "Paciente apresenta sinais de ameaça imediata à vida. "
-        "Necessita atendimento imediato conforme Protocolo de Manchester."
-    ),
-    TriageColor.ORANGE: (
-        "Quadro clínico sugere condição muito urgente com risco potencial. "
-        "Discriminadores-chave indicam necessidade de avaliação em até 10 minutos."
-    ),
-    TriageColor.YELLOW: (
-        "Paciente apresenta sinais de urgência moderada. "
-        "Sinais vitais e quadro clínico indicam necessidade de avaliação "
-        "em até 60 minutos."
-    ),
-    TriageColor.GREEN: (
-        "Quadro clínico estável, sem sinais de urgência. "
-        "Paciente pode aguardar atendimento em até 120 minutos."
-    ),
-    TriageColor.BLUE: (
-        "Demanda não urgente, sem achados clínicos agudos. "
-        "Paciente pode ser atendido em até 240 minutos ou encaminhado "
-        "para unidade básica de saúde."
-    ),
-}
-
-_DISCRIMINATORS: dict[TriageColor, list[str]] = {
-    TriageColor.RED: [
-        "Comprometimento de via aérea",
-        "Nível de consciência alterado",
-        "Hemorragia ativa",
-    ],
-    TriageColor.ORANGE: [
-        "Dor severa (8-10)",
-        "Risco cardíaco",
-        "Desconforto respiratório grave",
-    ],
-    TriageColor.YELLOW: [
-        "Dor moderada (4-7)",
-        "Sinais vitais alterados",
-        "Febre significativa",
-    ],
-    TriageColor.GREEN: [
-        "Dor leve (1-3)",
-        "Sinais vitais estáveis",
-        "Lesão menor",
-    ],
-    TriageColor.BLUE: [
-        "Sem achados agudos",
-        "Demanda administrativa",
-        "Queixa crônica estável",
-    ],
-}
-
 _CONFIDENCE: dict[TriageColor, float] = {
     TriageColor.RED: 0.95,
     TriageColor.ORANGE: 0.90,
     TriageColor.YELLOW: 0.85,
     TriageColor.GREEN: 0.88,
     TriageColor.BLUE: 0.92,
+}
+
+_REASONING_KEYS: dict[TriageColor, str] = {
+    TriageColor.RED: "reasoning_red",
+    TriageColor.ORANGE: "reasoning_orange",
+    TriageColor.YELLOW: "reasoning_yellow",
+    TriageColor.GREEN: "reasoning_green",
+    TriageColor.BLUE: "reasoning_blue",
+}
+
+_DISCRIMINATOR_KEYS: dict[TriageColor, list[str]] = {
+    TriageColor.RED: ["disc_red_1", "disc_red_2", "disc_red_3"],
+    TriageColor.ORANGE: ["disc_orange_1", "disc_orange_2", "disc_orange_3"],
+    TriageColor.YELLOW: ["disc_yellow_1", "disc_yellow_2", "disc_yellow_3"],
+    TriageColor.GREEN: ["disc_green_1", "disc_green_2", "disc_green_3"],
+    TriageColor.BLUE: ["disc_blue_1", "disc_blue_2", "disc_blue_3"],
 }
 
 
@@ -243,15 +203,17 @@ def _more_urgent(a: TriageColor, b: TriageColor) -> TriageColor:
     return a if _COLOR_PRIORITY[a] <= _COLOR_PRIORITY[b] else b
 
 
-def mock_classify(patient: PatientData) -> TriageResult:
+def mock_classify(patient: PatientData, lang: str = "pt") -> TriageResult:
     """Classify a patient using keyword heuristics (no model call).
 
     Args:
         patient: Structured patient data.
+        lang: Language code (``"pt"`` or ``"en"``).
 
     Returns:
         A realistic TriageResult based on keyword matching and vital signs.
     """
+    s = get_strings(lang)
     color = _keyword_color(patient.chief_complaint)
 
     # Pain scale override
@@ -268,14 +230,17 @@ def mock_classify(patient: PatientData) -> TriageResult:
 
     level_name, max_wait = TRIAGE_LEVELS[color]
 
+    reasoning = s[_REASONING_KEYS[color]]
+    discriminators = [s[k] for k in _DISCRIMINATOR_KEYS[color]]
+
     return TriageResult(
         triage_color=color,
         triage_level=level_name,
         max_wait_minutes=max_wait,
-        reasoning=_REASONING[color],
-        key_discriminators=_DISCRIMINATORS[color],
+        reasoning=reasoning,
+        key_discriminators=discriminators,
         confidence=_CONFIDENCE[color],
-        raw_model_response="[mock response — nenhuma chamada ao modelo realizada]",
+        raw_model_response=s["mock_raw_response"],
         parse_failed=False,
     )
 
@@ -506,7 +471,7 @@ def build_mock_fhir_bundle(
 # Sample synthetic cases for the demo sidebar
 # ---------------------------------------------------------------------------
 
-SAMPLE_CASES: list[dict] = [
+SAMPLE_CASES_PT: list[dict] = [
     {
         "name": "Maria Silva",
         "age": 55,
@@ -603,3 +568,118 @@ SAMPLE_CASES: list[dict] = [
         "notes": "",
     },
 ]
+
+SAMPLE_CASES_EN: list[dict] = [
+    {
+        "name": "Maria Silva",
+        "age": 55,
+        "sex": "F",
+        "chief_complaint": "Chest pain radiating to left arm",
+        "symptoms": "diaphoresis, nausea, shortness of breath",
+        "onset": "30 minutes ago",
+        "pain_scale": 9,
+        "heart_rate": 110,
+        "blood_pressure": "180/100",
+        "respiratory_rate": 22,
+        "temperature": 0.0,
+        "spo2": 94.0,
+        "glucose": 0.0,
+        "history": "hypertension, type 2 diabetes",
+        "medications": "losartan, metformin",
+        "allergies": "",
+        "notes": "",
+    },
+    {
+        "name": "João Santos",
+        "age": 8,
+        "sex": "M",
+        "chief_complaint": "High fever and vomiting for 2 days",
+        "symptoms": "fever, vomiting, lethargy",
+        "onset": "2 days ago",
+        "pain_scale": 4,
+        "heart_rate": 130,
+        "blood_pressure": "",
+        "respiratory_rate": 28,
+        "temperature": 39.2,
+        "spo2": 0.0,
+        "glucose": 0.0,
+        "history": "",
+        "medications": "",
+        "allergies": "",
+        "notes": "",
+    },
+    {
+        "name": "Ana Oliveira",
+        "age": 30,
+        "sex": "F",
+        "chief_complaint": "Sprained ankle playing football",
+        "symptoms": "ankle swelling, mild pain",
+        "onset": "1 hour ago",
+        "pain_scale": 3,
+        "heart_rate": 78,
+        "blood_pressure": "120/80",
+        "respiratory_rate": 0,
+        "temperature": 36.5,
+        "spo2": 0.0,
+        "glucose": 0.0,
+        "history": "",
+        "medications": "",
+        "allergies": "",
+        "notes": "",
+    },
+    {
+        "name": "Carlos Ferreira",
+        "age": 72,
+        "sex": "M",
+        "chief_complaint": "Need to refill losartan prescription",
+        "symptoms": "",
+        "onset": "",
+        "pain_scale": 0,
+        "heart_rate": 72,
+        "blood_pressure": "130/85",
+        "respiratory_rate": 0,
+        "temperature": 0.0,
+        "spo2": 0.0,
+        "glucose": 0.0,
+        "history": "hypertension",
+        "medications": "losartan",
+        "allergies": "",
+        "notes": "",
+    },
+    {
+        "name": "Lúcia Pereira",
+        "age": 45,
+        "sex": "F",
+        "chief_complaint": "Sudden shortness of breath, wheezing",
+        "symptoms": "wheezing, dyspnea, chest tightness",
+        "onset": "20 minutes ago",
+        "pain_scale": 6,
+        "heart_rate": 105,
+        "blood_pressure": "140/90",
+        "respiratory_rate": 32,
+        "temperature": 0.0,
+        "spo2": 88.0,
+        "glucose": 0.0,
+        "history": "asthma",
+        "medications": "salbutamol",
+        "allergies": "",
+        "notes": "",
+    },
+]
+
+# Backward-compatible alias used by tests and existing code
+SAMPLE_CASES = SAMPLE_CASES_PT
+
+
+def get_sample_cases(lang: str = "pt") -> list[dict]:
+    """Return sample cases for the given language.
+
+    Args:
+        lang: Language code (``"pt"`` or ``"en"``).
+
+    Returns:
+        List of synthetic patient case dictionaries.
+    """
+    if lang == "en":
+        return SAMPLE_CASES_EN
+    return SAMPLE_CASES_PT
