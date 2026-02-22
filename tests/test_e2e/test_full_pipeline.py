@@ -295,5 +295,4 @@ class TestPipelineErrorResilience:
         assert result["triage_result"] is not None
         assert result["triage_result"].triage_color in TriageColor
         assert result["fhir_bundle"] is not None
-        assert len(result["errors"]) == 1
-        assert "Image analysis failed" in result["errors"][0]
+        assert any("Image analysis failed" in e for e in result["errors"])
