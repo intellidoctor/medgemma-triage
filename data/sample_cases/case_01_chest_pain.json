@@ -1,0 +1,29 @@
+{
+  "id": "case_01",
+  "lang": "en",
+  "title": "Acute chest pain with cardiac risk factors",
+  "source": "Synthetic case based on Manchester Triage System flowchart 'Chest Pain'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Robert Thompson",
+    "age": 62,
+    "sex": "M",
+    "chief_complaint": "Crushing chest pain radiating to left arm and jaw, started 45 minutes ago while resting",
+    "symptoms": ["chest pain", "diaphoresis", "nausea", "shortness of breath", "pain radiating to left arm"],
+    "onset": "45 minutes ago, sudden onset at rest",
+    "pain_scale": 9,
+    "vital_signs": {
+      "heart_rate": 108,
+      "blood_pressure": "178/105",
+      "respiratory_rate": 24,
+      "temperature": 36.8,
+      "spo2": 95.0,
+      "glucose": 180.0
+    },
+    "history": ["hypertension", "type 2 diabetes", "hyperlipidemia", "smoker 30 pack-years"],
+    "medications": ["metoprolol", "lisinopril", "atorvastatin", "metformin"],
+    "allergies": ["aspirin"],
+    "notes": "Patient appears anxious and diaphoretic. ECG not yet performed."
+  }
+}

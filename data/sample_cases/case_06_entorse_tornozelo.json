@@ -1,0 +1,28 @@
+{
+  "id": "case_06",
+  "lang": "pt",
+  "title": "Lesão musculoesquelética leve — entorse de tornozelo",
+  "source": "Caso sintético baseado no fluxograma do Protocolo de Manchester 'Problemas em Extremidades'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Lucas Oliveira",
+    "age": 28,
+    "sex": "M",
+    "chief_complaint": "Torceu o tornozelo direito jogando futebol há cerca de 2 horas, com inchaço e dor ao caminhar",
+    "symptoms": ["edema no tornozelo", "dor ao apoiar o pé", "equimose leve"],
+    "onset": "2 horas atrás durante jogo de futebol",
+    "pain_scale": 4,
+    "vital_signs": {
+      "heart_rate": 76,
+      "blood_pressure": "122/78",
+      "respiratory_rate": 16,
+      "temperature": 36.6,
+      "spo2": 99.0
+    },
+    "history": [],
+    "medications": [],
+    "allergies": ["penicilina"],
+    "notes": "Paciente consegue caminhar mancando. Sem deformidade aparente. Pulsos distais presentes, sensibilidade preservada. Edema leve sobre maléolo lateral."
+  }
+}

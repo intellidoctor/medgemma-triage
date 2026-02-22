@@ -261,14 +261,20 @@ def _parse_triage_response(raw: str) -> dict:
                         "parse_failed": False,
                     }
             except (json.JSONDecodeError, ValueError, TypeError):
-                logger.warning("JSON parsing failed, trying regex fallback")
+                logger.warning(
+                    "\033[33m\U000026a0\U0000fe0f  JSON parsing failed, "
+                    "trying regex fallback\033[0m"
+                )
 
     # Tier 2: Regex fallback — look for color mention
     color_pattern = r"\b(RED|ORANGE|YELLOW|GREEN|BLUE)\b"
     color_match = re.search(color_pattern, raw.upper())
     if color_match:
         color_str = color_match.group(1)
-        logger.warning("Used regex fallback to extract triage color: %s", color_str)
+        logger.warning(
+            "\033[33m\U000026a0\U0000fe0f  Regex fallback extracted color: %s\033[0m",
+            color_str,
+        )
         return {
             "triage_color": color_str,
             "reasoning": raw[:500],
@@ -278,7 +284,9 @@ def _parse_triage_response(raw: str) -> dict:
         }
 
     # Tier 3: Default to YELLOW (safe middle ground)
-    logger.error("Could not parse triage color from model response")
+    logger.error(
+        "\033[1;31m\U0000274c Could not parse triage color from model response\033[0m"
+    )
     return {
         "triage_color": "YELLOW",
         "reasoning": raw[:500],
@@ -293,11 +301,12 @@ def _parse_triage_response(raw: str) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def classify(patient: PatientData) -> TriageResult:
+def classify(patient: PatientData, lang: str = "pt") -> TriageResult:
     """Classify a patient using the Manchester Triage System.
 
     Args:
         patient: Structured patient data with at least a chief complaint.
+        lang: Language code (``"pt"`` or ``"en"``).
 
     Returns:
         TriageResult with color, reasoning, and key discriminators.
@@ -308,14 +317,45 @@ def classify(patient: PatientData) -> TriageResult:
     """
     user_prompt = _build_user_prompt(patient)
 
-    logger.info("Calling MedGemma 27B for triage classification")
+    if lang == "en":
+        lang_instruction = (
+            "\n\nThis is for an American medical application. "
+            "Your answer must be in English."
+        )
+    else:
+        lang_instruction = (
+            "\n\nThis is for a Brazilian medical application. "
+            "Your answer must be in Brazilian Portuguese."
+        )
+    system_prompt = _MANCHESTER_SYSTEM_PROMPT + lang_instruction
+
+    logger.info(
+        "\n\033[36m"
+        "============================================================\n"
+        "\U0001f4e4  SENDING TO MEDGEMMA 27B\n"
+        "============================================================\033[0m\n"
+        "\033[33m[SYSTEM PROMPT]\033[0m\n%s\n\n"
+        "\033[33m[USER PROMPT]\033[0m\n%s\n"
+        "\033[36m============================================================\033[0m",
+        system_prompt,
+        user_prompt,
+    )
     raw_response = generate_text(
         prompt=user_prompt,
-        system_prompt=_MANCHESTER_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         max_tokens=1024,
         temperature=0.1,
     )
-    logger.info("Model response received (%d chars)", len(raw_response))
+    logger.info(
+        "\n\033[32m"
+        "============================================================\n"
+        "\U0001f4e5  MEDGEMMA 27B RESPONSE (%d chars)\n"
+        "============================================================\033[0m\n"
+        "%s\n"
+        "\033[32m============================================================\033[0m",
+        len(raw_response),
+        raw_response,
+    )
 
     parsed = _parse_triage_response(raw_response)
 

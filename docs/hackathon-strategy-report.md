@@ -35,10 +35,50 @@ Brazil's RNDS (Rede Nacional de Dados em Saude — the national health data netw
 
 ### MEDIUM PRIORITY: Manchester Protocol Clinical Validation
 
-- Create 15-20 synthetic patient scenarios covering all 5 Manchester levels (Red/Orange/Yellow/Green/Blue)
-- Run triage agent, compare outputs to expert Manchester classification
-- Report accuracy: "Achieved X% concordance with expert Manchester triage across 20 synthetic cases"
-- Show 2-3 examples with reasoning chains (why it chose Orange vs Yellow)
+- Create 5 synthetic patient scenarios covering all 5 Manchester levels (Red/Orange/Yellow/Green/Blue)
+- Run triage agent, compare outputs to protocol-derived Manchester classification
+
+- Report accuracy: "Achieved X/5 concordance with MTS protocol across 5 synthetic cases"
+
+> **A: How will we check this concordance?**
+>
+> Use **Cohen's kappa** (the standard metric in MTS validation literature) plus a safety-oriented over/under-triage analysis. A [2025 multicentre MTS vignette study](https://pubmed.ncbi.nlm.nih.gov/40050005/) found *"overall agreement between triage and expert nurses yielded a Cohen's kappa of 0.59 (95% CI 0.58 to 0.59)"* with a 28.6% error rate — this is the human baseline to compare against. A [UK primary care AI triage study (June 2025)](https://www.medrxiv.org/content/10.1101/2025.06.11.25329441v1) achieved *kappa of 0.69 with 83.7% categorical agreement*, rated "substantial agreement."
+>
+> **Implementation:** Create 5 synthetic cases (one per Manchester level) with protocol-derived gold-standard labels. Run MedGemma through all cases. Compute:
+> 1. **Exact match accuracy** — X/5 cases where AI matched the protocol-derived label
+> 2. **Over-triage vs under-triage direction** — when misclassified, did the AI err toward higher urgency (safer) or lower urgency (dangerous)?
+> 3. **Critical under-triage count** — cases where AI rated Red/Orange as Yellow/Green/Blue (the dangerous direction)
+>
+> With only 5 cases, kappa is not statistically meaningful — report exact match counts and directional analysis instead. Frame results against the human nurse baseline (kappa ~0.59, i.e. ~28.6% error rate) for context.
+>
+> *Sources: [Reproducibility of MTS multicentre study](https://pubmed.ncbi.nlm.nih.gov/40050005/), [AI vs GPs in UK Primary Care Triage](https://www.medrxiv.org/content/10.1101/2025.06.11.25329441v1), [Challenges in validation of triage systems](https://www.sciencedirect.com/science/article/abs/pii/S0895435609002212)*
+
+> **A: Where do the gold-standard labels come from?**
+>
+> **The Manchester Triage System is a deterministic algorithm, not a subjective judgment.** The "gold standard" is the MTS protocol itself — no external expert panel is needed. The system works as a decision tree:
+> 1. Chief complaint → selects one of 52 MTS flowcharts (e.g., "Chest Pain", "Shortness of Breath")
+> 2. Each flowchart lists discriminators ranked by priority (Red first, then Orange, Yellow, etc.)
+> 3. Evaluate discriminators top-down — the first one present determines the classification
+>
+> A [MTS validation study](https://pmc.ncbi.nlm.nih.gov/articles/PMC5016055/) confirms: *"A discriminator will lead to the same urgency level, regardless of the flowchart used, increasing the ease of use and the interrater reliability."* Published validation studies establish gold-standard labels the same way — [Zaboli et al. (2025)](https://pubmed.ncbi.nlm.nih.gov/40050005/) assigned labels by *"applying MTS priority codes following the guidelines outlined in the official MTS textbook"* (Mackway-Jones et al., "Emergency Triage: Manchester Triage Group", 3rd edition).
+>
+> **For our 5 cases, we design each scenario so a specific discriminator is unambiguously present:**
+>
+> | Level | Example Discriminator | Example Scenario | Why It's Deterministic |
+> |-------|----------------------|-------------------|----------------------|
+> | RED | "Currently fitting" | Patient actively seizing | Protocol mandates RED for active seizure |
+> | ORANGE | "Severe pain (8-10)" | Chest pain 9/10, diaphoretic | Protocol mandates ORANGE for severe pain |
+> | YELLOW | "Fever >38.5°C" | Fever 39.2°C, vomiting, no red flags | Protocol mandates YELLOW for moderate fever without higher discriminators |
+> | GREEN | "Recent injury, mild pain" | Ankle sprain, pain 3/10, stable vitals | No higher discriminators present → GREEN |
+> | BLUE | "No acute findings" | Prescription refill, stable | Administrative visit, no clinical urgency |
+>
+> Each case documents: **Case → Chief Complaint → MTS Flowchart → Key Discriminator → Protocol-mandated classification**. The label is correct because the protocol says so, not because a human judged it.
+>
+> **Note:** Our triage agent's system prompt (`src/agents/triage.py`) already encodes the key discriminators used above. We cite the official MTS textbook (Mackway-Jones et al., 3rd edition) as the authoritative source. The 5 sample cases in `src/ui/mock_services.py` can serve as a starting point.
+>
+> *Sources: [MTS Flowcharts and Discriminators](https://pmc.ncbi.nlm.nih.gov/articles/PMC5016055/), [Reproducibility of MTS multicentre study](https://pubmed.ncbi.nlm.nih.gov/40050005/), [Emergency Triage textbook (Wiley)](https://onlinelibrary.wiley.com/doi/book/10.1002/9781118299029)*
+
+- Show 2-3 examples with reasoning chains (why it chose Orange vs Yellow) — MedGemma already outputs `reasoning` and `key_discriminators` fields natively; surface these in the UI
 - Include 1 failure case: "System correctly escalated uncertainty by flagging case for nurse review"
 
 ### MEDIUM PRIORITY: Address Known Manchester/SUS Challenges
@@ -92,7 +132,7 @@ Three converging crises:
 ## 3. RECOMMENDED 4-DAY PLAN
 
 - **Day 1 (Feb 20):** Complete Triage + Documentation agents, test 5 cases end-to-end
-- **Day 2 (Feb 21):** 20 synthetic test cases, validation metrics, start write-up + workflow diagram
+- **Day 2 (Feb 21):** 5 synthetic test cases (one per Manchester level), validation metrics, start write-up + workflow diagram
 - **Day 3 (Feb 22):** Streamlit UI + record 3-minute demo video
 - **Day 4 (Feb 23):** Polish, test reproducibility on fresh machine, submit early (6+ hours buffer)
 
@@ -166,3 +206,10 @@ Three converging crises:
 ### Hackathon Strategy
 - [OOP's 2025 Healthcare AI Hackathon Projects](https://www.outofpocket.health/p/oops-2025-healthcare-ai-hackathon-projects)
 - [Harvard Hackathon: Digital AI Solutions for Healthcare](https://hsph.harvard.edu/news/hackathon-sparks-digital-ai-solutions-to-improve-health-care/)
+
+
+# Immediate Next Steps for Project Enhancement
+
+1. Test without mock data [done]
+2. Create 5 synthetic validation cases (one per Manchester level) with protocol-derived gold-standard labels and unambiguous discriminators
+3. Display MedGemma's reasoning and key_discriminators in the Streamlit UI as expandable sections (model already outputs structured reasoning — just needs to be surfaced to the nurse)

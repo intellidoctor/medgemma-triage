@@ -3,10 +3,14 @@
 from src.agents.triage import PatientData, TriageColor, TriageResult, VitalSigns
 from src.ui.mock_services import (
     SAMPLE_CASES,
+    SAMPLE_CASES_EN,
+    SAMPLE_CASES_PT,
     build_mock_fhir_bundle,
+    get_sample_cases,
     mock_analyze_image,
     mock_classify,
 )
+from src.ui.strings import get_strings
 
 # ---------------------------------------------------------------------------
 # mock_classify
@@ -351,3 +355,72 @@ class TestSampleCases:
     def test_all_have_unique_names(self) -> None:
         names = [c["name"] for c in SAMPLE_CASES]
         assert len(names) == len(set(names))
+
+
+# ---------------------------------------------------------------------------
+# i18n / language toggle
+# ---------------------------------------------------------------------------
+
+
+class TestLanguageSupport:
+    """Verify that language toggle produces correct output."""
+
+    def test_get_sample_cases_pt_returns_portuguese(self) -> None:
+        cases = get_sample_cases("pt")
+        assert cases is SAMPLE_CASES_PT
+
+    def test_get_sample_cases_en_returns_english(self) -> None:
+        cases = get_sample_cases("en")
+        assert cases is SAMPLE_CASES_EN
+
+    def test_sample_cases_alias_is_pt(self) -> None:
+        assert SAMPLE_CASES is SAMPLE_CASES_PT
+
+    def test_en_cases_have_same_count_as_pt(self) -> None:
+        assert len(SAMPLE_CASES_EN) == len(SAMPLE_CASES_PT)
+
+    def test_en_cases_have_required_fields(self) -> None:
+        required = ["name", "age", "sex", "chief_complaint"]
+        for case in SAMPLE_CASES_EN:
+            for field in required:
+                assert field in case, f"EN case {case.get('name')} missing {field}"
+
+    def test_en_cases_have_unique_names(self) -> None:
+        names = [c["name"] for c in SAMPLE_CASES_EN]
+        assert len(names) == len(set(names))
+
+    def test_mock_classify_en_reasoning_is_english(self) -> None:
+        patient = PatientData(chief_complaint="Febre alta")
+        result = mock_classify(patient, lang="en")
+        assert isinstance(result, TriageResult)
+        # English reasoning should not contain Portuguese text
+        assert "Paciente" not in result.reasoning
+
+    def test_mock_classify_pt_reasoning_is_portuguese(self) -> None:
+        patient = PatientData(chief_complaint="Febre alta")
+        result = mock_classify(patient, lang="pt")
+        # Portuguese reasoning should contain Portuguese text
+        assert "Paciente" in result.reasoning or "Demanda" in result.reasoning
+
+    def test_mock_classify_default_lang_is_pt(self) -> None:
+        patient = PatientData(chief_complaint="Febre alta")
+        result_default = mock_classify(patient)
+        result_pt = mock_classify(patient, lang="pt")
+        assert result_default.reasoning == result_pt.reasoning
+
+    def test_get_strings_pt(self) -> None:
+        s = get_strings("pt")
+        assert s["classify_button"] == "Classificar Paciente"
+
+    def test_get_strings_en(self) -> None:
+        s = get_strings("en")
+        assert s["classify_button"] == "Classify Patient"
+
+    def test_get_strings_unknown_defaults_to_pt(self) -> None:
+        s = get_strings("xx")
+        assert s["classify_button"] == "Classificar Paciente"
+
+    def test_pt_and_en_have_same_keys(self) -> None:
+        pt = get_strings("pt")
+        en = get_strings("en")
+        assert set(pt.keys()) == set(en.keys())
