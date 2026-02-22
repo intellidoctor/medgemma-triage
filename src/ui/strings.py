@@ -18,6 +18,8 @@ _STRINGS_PT: Dict[str, str] = {
     "sidebar_sample_cases": "Casos de exemplo",
     "sidebar_load_case": "Carregar caso sintético",
     "sidebar_select_placeholder": "(selecione)",
+    "sidebar_test_cases": "Casos de teste",
+    "sidebar_load_test_case": "Carregar caso de teste (MedGemma)",
     "sidebar_clear": "Limpar formulário",
     "sidebar_disclaimer": (
         "Este sistema auxilia enfermeiros de triagem — "
@@ -152,6 +154,8 @@ _STRINGS_EN: Dict[str, str] = {
     "sidebar_sample_cases": "Sample cases",
     "sidebar_load_case": "Load synthetic case",
     "sidebar_select_placeholder": "(select)",
+    "sidebar_test_cases": "Test cases",
+    "sidebar_load_test_case": "Load test case (MedGemma)",
     "sidebar_clear": "Clear form",
     "sidebar_disclaimer": (
         "This system assists triage nurses — "

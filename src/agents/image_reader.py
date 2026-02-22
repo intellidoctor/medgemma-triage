@@ -179,7 +179,10 @@ def _parse_image_response(raw: str) -> dict:
                         "parse_failed": False,
                     }
             except (json.JSONDecodeError, ValueError, TypeError):
-                logger.warning("JSON parsing failed, trying regex fallback")
+                logger.warning(
+                    "JSON parsing failed, trying regex fallback",
+                    exc_info=True,
+                )
 
     # Tier 2: Regex fallback — look for severity mention
     severity_pattern = r"\b(CRITICAL|SEVERE|MODERATE|MILD|NORMAL)\b"
@@ -241,14 +244,25 @@ def analyze(
     user_prompt = _build_image_prompt(clinical_context)
 
     logger.info("Calling MedGemma 4B for image analysis")
-    raw_response = _model_analyze_image(
-        image=image_bytes,
-        prompt=user_prompt,
-        system_prompt=_IMAGE_SYSTEM_PROMPT,
-        mime_type=mime_type,
-        max_tokens=1024,
-        temperature=0.1,
-    )
+    try:
+        raw_response = _model_analyze_image(
+            image=image_bytes,
+            prompt=user_prompt,
+            system_prompt=_IMAGE_SYSTEM_PROMPT,
+            mime_type=mime_type,
+            max_tokens=1024,
+            temperature=0.1,
+        )
+    except Exception:
+        logger.error("MedGemma 4B API call failed", exc_info=True)
+        return ImageFindings(
+            modality="unknown",
+            description="Image analysis unavailable — model API call failed.",
+            severity=ImageSeverity.MODERATE,
+            confidence=0.0,
+            raw_model_response="",
+            parse_failed=True,
+        )
     logger.info("Model response received (%d chars)", len(raw_response))
 
     parsed = _parse_image_response(raw_response)

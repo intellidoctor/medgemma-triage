@@ -47,8 +47,12 @@ def _load_test_cases(lang: str = "pt") -> list[dict]:
     """Load JSON test cases filtered by language."""
     cases: list[dict] = []
     for path in sorted(_CASES_DIR.glob("case_*.json")):
-        with open(path) as f:
-            raw = json.load(f)
+        try:
+            with open(path) as f:
+                raw = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            logger.warning("Failed to load test case %s, skipping", path, exc_info=True)
+            continue
         if raw.get("lang", "en") != lang:
             continue
         p = raw["patient"]
@@ -266,14 +270,14 @@ def _render_sidebar(s: dict[str, str], lang: str) -> None:
 
         # Test cases (real MedGemma)
         st.divider()
-        st.header(s.get("sidebar_test_cases", "Casos de teste"))
+        st.header(s["sidebar_test_cases"])
         test_cases = _load_test_cases(lang)
         test_names = [s["sidebar_select_placeholder"]] + [
             f"{tc['_test_case_id']}: {tc['name']}" for tc in test_cases
         ]
 
         test_selected = st.selectbox(
-            s.get("sidebar_load_test_case", "Load test case (MedGemma)"),
+            s["sidebar_load_test_case"],
             test_names,
             key="test_case_selector",
         )
