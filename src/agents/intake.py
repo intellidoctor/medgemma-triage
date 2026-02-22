@@ -209,7 +209,10 @@ def _parse_intake_response(raw: str) -> dict:
                     "clinical_notes": parsed.get("clinical_notes"),
                 }
             except (json.JSONDecodeError, ValueError, TypeError):
-                logger.warning("JSON parsing failed, trying text fallback")
+                logger.warning(
+                    "JSON parsing failed, trying text fallback",
+                    exc_info=True,
+                )
 
     # Tier 2: Look for a question-mark sentence
     question_match = re.search(r"[^.!?\n]*\?", raw)
@@ -347,12 +350,29 @@ def process_answer(state: IntakeState, answer: str) -> IntakeState:
     prompt = _build_intake_prompt(state, answer)
 
     logger.info("Calling MedGemma 27B for intake turn %d", turn_count)
-    raw_response = generate_text(
-        prompt=prompt,
-        system_prompt=_INTAKE_SYSTEM_PROMPT,
-        max_tokens=1024,
-        temperature=0.3,
-    )
+    try:
+        raw_response = generate_text(
+            prompt=prompt,
+            system_prompt=_INTAKE_SYSTEM_PROMPT,
+            max_tokens=1024,
+            temperature=0.3,
+        )
+    except Exception:
+        logger.error(
+            "MedGemma API call failed for intake turn %d",
+            turn_count,
+            exc_info=True,
+        )
+        fallback_q = _next_fallback_question(state.extracted)
+        conversation.append(ConversationTurn(role="agent", content=fallback_q))
+        return IntakeState(
+            status=IntakeStatus.IN_PROGRESS,
+            conversation=conversation,
+            extracted=state.extracted,
+            pending_question=fallback_q,
+            turn_count=turn_count,
+            raw_extraction_response=None,
+        )
     logger.info("Model response received (%d chars)", len(raw_response))
 
     # Parse response

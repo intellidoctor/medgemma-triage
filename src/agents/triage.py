@@ -340,12 +340,25 @@ def classify(patient: PatientData, lang: str = "pt") -> TriageResult:
         system_prompt,
         user_prompt,
     )
-    raw_response = generate_text(
-        prompt=user_prompt,
-        system_prompt=system_prompt,
-        max_tokens=1024,
-        temperature=0.1,
-    )
+    try:
+        raw_response = generate_text(
+            prompt=user_prompt,
+            system_prompt=system_prompt,
+            max_tokens=1024,
+            temperature=0.1,
+        )
+    except Exception:
+        logger.error("\033[1;31m\u274c MedGemma API call failed\033[0m", exc_info=True)
+        return TriageResult(
+            triage_color=TriageColor.YELLOW,
+            triage_level="Urgente",
+            max_wait_minutes=60,
+            reasoning="Model API call failed — defaulting to YELLOW for safety.",
+            key_discriminators=[],
+            confidence=0.0,
+            raw_model_response="",
+            parse_failed=True,
+        )
     logger.info(
         "\n\033[32m"
         "============================================================\n"
