@@ -227,7 +227,9 @@ class TestRunTriage:
 
 
 class TestRunDocumentation:
-    def test_returns_none_stub(self, sample_patient: PatientData) -> None:
+    def test_returns_none_without_triage_result(
+        self, sample_patient: PatientData
+    ) -> None:
         state: PipelineState = {
             "patient_data": sample_patient,
             "errors": [],
