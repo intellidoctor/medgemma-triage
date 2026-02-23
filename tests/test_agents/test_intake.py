@@ -569,15 +569,17 @@ class TestProcessAnswer:
         assert new_state.raw_extraction_response == valid_model_response
 
     @patch("src.agents.intake.generate_text")
-    def test_api_error_propagates(
+    def test_api_error_returns_fallback(
         self,
         mock_generate: object,
         started_state: IntakeState,
     ) -> None:
         mock_generate.side_effect = RuntimeError("API connection failed")  # type: ignore[attr-defined]
 
-        with pytest.raises(RuntimeError, match="API connection failed"):
-            process_answer(started_state, "Dor")
+        result = process_answer(started_state, "Dor")
+        assert result.status == IntakeStatus.IN_PROGRESS
+        assert result.pending_question is not None
+        assert result.raw_extraction_response is None
 
     @patch("src.agents.intake.generate_text")
     def test_fallback_question_on_parse_failure(

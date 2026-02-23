@@ -313,15 +313,17 @@ class TestAnalyze:
         assert call_kwargs.kwargs["image"] == sample_image_bytes
 
     @patch("src.agents.image_reader._model_analyze_image")
-    def test_api_error_propagates(
+    def test_api_error_returns_safe_default(
         self,
         mock_model: object,
         sample_image_bytes: bytes,
     ) -> None:
         mock_model.side_effect = RuntimeError("API connection failed")  # type: ignore[attr-defined]
 
-        with pytest.raises(RuntimeError, match="API connection failed"):
-            analyze(sample_image_bytes)
+        result = analyze(sample_image_bytes)
+        assert result.severity == ImageSeverity.MODERATE
+        assert result.parse_failed is True
+        assert result.confidence == 0.0
 
     @patch("src.agents.image_reader._model_analyze_image")
     def test_parse_failure_returns_moderate(

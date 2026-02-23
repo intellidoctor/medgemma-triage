@@ -10,12 +10,11 @@ These tests hit real Vertex AI endpoints. They require:
 import io
 
 import pytest
-
-pytestmark = pytest.mark.integration
-
 from PIL import Image
 
 from src.models.medgemma import _get_token, analyze_image, generate_text
+
+pytestmark = pytest.mark.integration
 
 
 class TestCredentials:
@@ -30,7 +29,10 @@ class TestGenerateText:
     def test_medical_question(self):
         """27B responds to a Manchester Protocol question."""
         response = generate_text(
-            prompt="In the Manchester Triage System, what color is assigned to a patient with chest pain?",
+            prompt=(
+                "In the Manchester Triage System, what color is "
+                "assigned to a patient with chest pain?"
+            ),
             system_prompt="You are a triage nurse expert in the Manchester Protocol.",
             max_tokens=256,
         )

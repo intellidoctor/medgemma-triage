@@ -402,12 +402,14 @@ class TestClassify:
         assert "Headache" in call_kwargs.kwargs["prompt"]
 
     @patch("src.agents.triage.generate_text")
-    def test_api_error_propagates(self, mock_generate: object) -> None:
+    def test_api_error_returns_safe_default(self, mock_generate: object) -> None:
         mock_generate.side_effect = RuntimeError("API connection failed")  # type: ignore[attr-defined]
         patient = PatientData(chief_complaint="Fever")
 
-        with pytest.raises(RuntimeError, match="API connection failed"):
-            classify(patient)
+        result = classify(patient)
+        assert result.triage_color == TriageColor.YELLOW
+        assert result.parse_failed is True
+        assert result.confidence == 0.0
 
 
 # ---------------------------------------------------------------------------
