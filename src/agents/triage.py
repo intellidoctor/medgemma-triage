@@ -310,10 +310,8 @@ def classify(patient: PatientData, lang: str = "pt") -> TriageResult:
 
     Returns:
         TriageResult with color, reasoning, and key discriminators.
-
-    Raises:
-        openai.APIError: If the model call fails (not caught here).
-        EnvironmentError: If model configuration is missing.
+        On API failure, returns YELLOW with ``parse_failed=True`` and
+        ``confidence=0.0`` as a safe default.
     """
     user_prompt = _build_user_prompt(patient)
 
