@@ -1,0 +1,28 @@
+{
+  "id": "case_08",
+  "lang": "en",
+  "title": "Minor finger laceration — small wound",
+  "source": "Synthetic case based on Manchester Triage System flowchart 'Wounds'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "James Cooper",
+    "age": 35,
+    "sex": "M",
+    "chief_complaint": "Cut index finger while cooking about 1 hour ago, small wound still oozing slightly",
+    "symptoms": ["small laceration on left index finger", "mild bleeding controlled with pressure", "mild pain"],
+    "onset": "1 hour ago while cutting vegetables",
+    "pain_scale": 2,
+    "vital_signs": {
+      "heart_rate": 72,
+      "blood_pressure": "120/76",
+      "respiratory_rate": 14,
+      "temperature": 36.5,
+      "spo2": 99.0
+    },
+    "history": [],
+    "medications": [],
+    "allergies": [],
+    "notes": "Superficial 1.5 cm laceration on palmar surface of left index finger. Bleeding controlled with direct pressure. Full range of motion preserved. Sensation intact distally. No tendon involvement. Last tetanus booster 3 years ago."
+  }
+}

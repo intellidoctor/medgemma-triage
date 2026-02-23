@@ -1,0 +1,28 @@
+{
+  "id": "case_07",
+  "lang": "en",
+  "title": "Sore throat with mild fever — minor infection",
+  "source": "Synthetic case based on Manchester Triage System flowchart 'Sore Throat'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Emily Watson",
+    "age": 24,
+    "sex": "F",
+    "chief_complaint": "Sore throat for 3 days with mild fever, able to swallow liquids and solids without difficulty",
+    "symptoms": ["sore throat", "mild fever", "fatigue", "runny nose"],
+    "onset": "3 days ago, gradual onset",
+    "pain_scale": 3,
+    "vital_signs": {
+      "heart_rate": 78,
+      "blood_pressure": "118/72",
+      "respiratory_rate": 16,
+      "temperature": 37.8,
+      "spo2": 99.0
+    },
+    "history": [],
+    "medications": ["ibuprofen as needed"],
+    "allergies": [],
+    "notes": "Pharynx mildly erythematous, no exudate. No cervical lymphadenopathy. No stridor or drooling. Able to swallow normally. Well-appearing."
+  }
+}
