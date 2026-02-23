@@ -17,50 +17,101 @@ import pytest
 _TRIAGE_RESPONSES: dict[str, str] = {
     "chest pain": json.dumps(
         {
-            "discriminator": "Chest pain",
-            "color": "ORANGE",
-            "priority": 2,
+            "triage_color": "ORANGE",
             "reasoning": "Acute chest pain requires urgent evaluation.",
+            "key_discriminators": ["chest pain", "cardiac risk"],
+            "confidence": 0.85,
+        }
+    ),
+    "dor tor": json.dumps(
+        {
+            "triage_color": "ORANGE",
+            "reasoning": "Dor torácica aguda requer avaliação urgente.",
+            "key_discriminators": ["dor torácica", "risco cardíaco"],
+            "confidence": 0.85,
         }
     ),
     "choking": json.dumps(
         {
-            "discriminator": "Airway compromise",
-            "color": "RED",
-            "priority": 1,
+            "triage_color": "RED",
             "reasoning": "Airway obstruction is an immediate threat to life.",
+            "key_discriminators": ["airway compromise"],
+            "confidence": 0.90,
         }
     ),
     "headache": json.dumps(
         {
-            "discriminator": "Headache",
-            "color": "YELLOW",
-            "priority": 3,
+            "triage_color": "YELLOW",
             "reasoning": "Headache without red flags is standard urgency.",
+            "key_discriminators": ["headache"],
+            "confidence": 0.75,
+        }
+    ),
+    "fever": json.dumps(
+        {
+            "triage_color": "YELLOW",
+            "reasoning": "High fever with respiratory symptoms warrants urgent evaluation.",
+            "key_discriminators": ["fever", "respiratory distress"],
+            "confidence": 0.80,
+        }
+    ),
+    "febre": json.dumps(
+        {
+            "triage_color": "YELLOW",
+            "reasoning": "Febre alta com sintomas respiratórios requer avaliação urgente.",
+            "key_discriminators": ["febre", "dificuldade respiratória"],
+            "confidence": 0.80,
         }
     ),
     "sprained ankle": json.dumps(
         {
-            "discriminator": "Limb problem",
-            "color": "GREEN",
-            "priority": 4,
+            "triage_color": "GREEN",
             "reasoning": "Minor musculoskeletal injury, non-urgent.",
+            "key_discriminators": ["limb problem"],
+            "confidence": 0.80,
+        }
+    ),
+    "ankle": json.dumps(
+        {
+            "triage_color": "GREEN",
+            "reasoning": "Minor musculoskeletal injury, non-urgent.",
+            "key_discriminators": ["limb problem"],
+            "confidence": 0.80,
+        }
+    ),
+    "tornozelo": json.dumps(
+        {
+            "triage_color": "GREEN",
+            "reasoning": "Lesão musculoesquelética menor, não urgente.",
+            "key_discriminators": ["problema em membro"],
+            "confidence": 0.80,
+        }
+    ),
+    "torceu": json.dumps(
+        {
+            "triage_color": "GREEN",
+            "reasoning": "Lesão musculoesquelética menor, não urgente.",
+            "key_discriminators": ["problema em membro"],
+            "confidence": 0.80,
         }
     ),
     "medication refill": json.dumps(
         {
-            "discriminator": "Administrative",
-            "color": "BLUE",
-            "priority": 5,
+            "triage_color": "BLUE",
             "reasoning": "Non-clinical request, lowest priority.",
+            "key_discriminators": ["administrative"],
+            "confidence": 0.90,
         }
     ),
 }
 
-_DEFAULT_TEXT_RESPONSE = (
-    "Based on the clinical information provided, the patient should be "
-    "evaluated promptly. Vital signs and history suggest further workup "
-    "is warranted."
+_DEFAULT_TEXT_RESPONSE = json.dumps(
+    {
+        "triage_color": "YELLOW",
+        "reasoning": "Patient requires evaluation. Vitals and history suggest further workup.",
+        "key_discriminators": ["unspecified complaint"],
+        "confidence": 0.60,
+    }
 )
 
 _IMAGE_RESPONSES: dict[str, str] = {
@@ -135,8 +186,23 @@ def _mock_analyze_image(
 
 
 # ---------------------------------------------------------------------------
-# Auto-use fixture: patches the definition site so all importers get the mock
+# Auto-use fixture: patches model calls at BOTH definition and usage sites
 # ---------------------------------------------------------------------------
+
+# Agents use ``from src.models.medgemma import generate_text`` which creates
+# a local binding.  Patching only the definition site does NOT affect the
+# already-imported references, so we must also patch the usage sites.
+
+_GENERATE_TEXT_TARGETS = [
+    "src.models.medgemma.generate_text",
+    "src.agents.triage.generate_text",
+    "src.agents.intake.generate_text",
+]
+
+_ANALYZE_IMAGE_TARGETS = [
+    "src.models.medgemma.analyze_image",
+    "src.agents.image_reader._model_analyze_image",
+]
 
 
 @pytest.fixture(autouse=True)
@@ -146,14 +212,16 @@ def _mock_medgemma(request: pytest.FixtureRequest) -> object:
         yield
         return
 
-    with (
-        patch(
-            "src.models.medgemma.generate_text",
-            side_effect=_mock_generate_text,
-        ),
-        patch(
-            "src.models.medgemma.analyze_image",
-            side_effect=_mock_analyze_image,
-        ),
-    ):
-        yield
+    patches = [
+        patch(target, side_effect=_mock_generate_text)
+        for target in _GENERATE_TEXT_TARGETS
+    ] + [
+        patch(target, side_effect=_mock_analyze_image)
+        for target in _ANALYZE_IMAGE_TARGETS
+    ]
+
+    for p in patches:
+        p.start()
+    yield
+    for p in reversed(patches):
+        p.stop()
