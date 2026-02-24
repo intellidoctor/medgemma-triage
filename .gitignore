@@ -37,3 +37,7 @@ notes/
 
 # LangGraph API cache
 .langgraph_api/
+
+# Large media files
+*.mov
+*.mp4

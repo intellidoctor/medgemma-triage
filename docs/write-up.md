@@ -1,6 +1,6 @@
 ### Project name
 
-MedGemma Triage Assistant -- Agentic Clinical Intake for Brazilian Emergency Rooms
+MedGemma Manchester Triage Assistant -- Agentic Manchester Clinical Intake for Brazilian Emergency Rooms
 
 ### Your team
 
