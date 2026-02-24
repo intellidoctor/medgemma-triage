@@ -50,7 +50,9 @@ _TRIAGE_RESPONSES: dict[str, str] = {
     "fever": json.dumps(
         {
             "triage_color": "YELLOW",
-            "reasoning": "High fever with respiratory symptoms warrants urgent evaluation.",
+            "reasoning": (
+                "High fever with respiratory symptoms " "warrants urgent evaluation."
+            ),
             "key_discriminators": ["fever", "respiratory distress"],
             "confidence": 0.80,
         }
@@ -58,7 +60,9 @@ _TRIAGE_RESPONSES: dict[str, str] = {
     "febre": json.dumps(
         {
             "triage_color": "YELLOW",
-            "reasoning": "Febre alta com sintomas respiratórios requer avaliação urgente.",
+            "reasoning": (
+                "Febre alta com sintomas respiratórios " "requer avaliação urgente."
+            ),
             "key_discriminators": ["febre", "dificuldade respiratória"],
             "confidence": 0.80,
         }
@@ -108,7 +112,9 @@ _TRIAGE_RESPONSES: dict[str, str] = {
 _DEFAULT_TEXT_RESPONSE = json.dumps(
     {
         "triage_color": "YELLOW",
-        "reasoning": "Patient requires evaluation. Vitals and history suggest further workup.",
+        "reasoning": (
+            "Patient requires evaluation. " "Vitals and history suggest further workup."
+        ),
         "key_discriminators": ["unspecified complaint"],
         "confidence": 0.60,
     }

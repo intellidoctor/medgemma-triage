@@ -12,8 +12,6 @@ from typing import Optional
 
 import streamlit as st
 
-# --- SWAP POINT: change these imports to use real agents -----------------
-from src.agents.image_reader import analyze as analyze_image_agent
 from src.agents.triage import (
     TRIAGE_LEVELS,
     PatientData,
@@ -21,12 +19,10 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
-from src.agents.triage import classify as real_classify
-from src.fhir.builder import build_fhir_bundle as build_mock_fhir_bundle
+from src.fhir.builder import build_fhir_bundle
+from src.pipeline.orchestrator import run_pipeline
 from src.ui.mock_services import mock_classify as classify_patient
 from src.ui.strings import get_strings
-
-# -------------------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
 
@@ -486,21 +482,11 @@ def _render_image_upload(s: dict[str, str]) -> None:
     )
     if uploaded is not None:
         st.image(uploaded, caption=uploaded.name, use_container_width=True)
-        image_bytes = uploaded.getvalue()
-        mime_type = uploaded.type or "image/jpeg"
-        try:
-            findings = analyze_image_agent(image_bytes, mime_type)
-            st.session_state["image_findings"] = findings.to_triage_summary()
-            severity_display = findings.severity.value
-            st.info(
-                f"**{s['image_severity']}:** {severity_display}\n\n"
-                f"**{s['image_findings']}:** {findings.description}"
-            )
-        except Exception:
-            logger.exception("Error analysing image")
-            st.error(s["image_error"])
+        st.session_state["uploaded_image_bytes"] = uploaded.getvalue()
+        st.session_state["uploaded_image_mime"] = uploaded.type or "image/jpeg"
     else:
-        st.session_state["image_findings"] = None
+        st.session_state["uploaded_image_bytes"] = None
+        st.session_state["uploaded_image_mime"] = None
 
 
 # ---------------------------------------------------------------------------
@@ -645,36 +631,62 @@ def main() -> None:
             else:
                 try:
                     patient_data = _build_patient_data(form_data)
+                    p_name = form_data["name"] or "Paciente"
+                    p_age = form_data["age"] if form_data["age"] > 0 else None
+                    p_sex = form_data["sex"]
+
                     if use_real:
+                        # Set to True to route through LangGraph dev server
+                        # (requires `langgraph dev` running on port 2024)
+                        use_studio = False
                         logger.info(
-                            "\033[1;34m\U0001f3e5 Starting real MedGemma "
-                            "triage classification...\033[0m"
+                            "\033[1;34m\U0001f3e5 Starting LangGraph "
+                            "triage pipeline (studio=%s)...\033[0m",
+                            use_studio,
                         )
                         t0 = time.time()
-                        result = real_classify(patient_data, lang=lang)
-                        elapsed = time.time() - t0
-                        logger.info(
-                            "\033[1;32m\U0001f3c1 MedGemma result: %s "
-                            "in %.1fs\033[0m",
-                            result.triage_color.value,
-                            elapsed,
+                        pipeline_result = run_pipeline(
+                            patient_data=patient_data,
+                            image_bytes=st.session_state.get("uploaded_image_bytes"),
+                            image_mime_type=st.session_state.get(
+                                "uploaded_image_mime", "image/jpeg"
+                            ),
+                            lang=lang,
+                            patient_name=p_name,
+                            patient_age=p_age,
+                            patient_sex=p_sex,
+                            use_langgraph_studio=use_studio,
                         )
+                        elapsed = time.time() - t0
+                        result = pipeline_result.get("triage_result")
+                        fhir_bundle = pipeline_result.get("fhir_bundle")
+                        errors = pipeline_result.get("errors", [])
+                        if errors:
+                            logger.warning(
+                                "\033[33m\u26a0\ufe0f Pipeline errors: " "%s\033[0m",
+                                errors,
+                            )
+                        if result:
+                            logger.info(
+                                "\033[1;32m\U0001f3c1 Pipeline result: "
+                                "%s in %.1fs\033[0m",
+                                result.triage_color.value,
+                                elapsed,
+                            )
                     else:
                         result = classify_patient(patient_data, lang=lang)
-                    fhir_bundle = build_mock_fhir_bundle(
-                        patient_name=form_data["name"] or "Paciente",
-                        patient_age=(
-                            form_data["age"] if form_data["age"] > 0 else None
-                        ),
-                        patient_sex=form_data["sex"],
-                        patient_data=patient_data,
-                        triage_result=result,
-                    )
+                        fhir_bundle = build_fhir_bundle(
+                            patient_name=p_name,
+                            patient_age=p_age,
+                            patient_sex=p_sex,
+                            patient_data=patient_data,
+                            triage_result=result,
+                        )
                     st.session_state["triage_result"] = result
                     st.session_state["fhir_bundle"] = fhir_bundle
                 except Exception:
                     logger.exception(
-                        "\033[1;31m\U0000274c Error classifying patient\033[0m"
+                        "\033[1;31m\u274c Error classifying " "patient\033[0m"
                     )
                     st.error(s["classification_error"])
 
