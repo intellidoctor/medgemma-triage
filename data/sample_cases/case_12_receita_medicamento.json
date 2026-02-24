@@ -1,0 +1,28 @@
+{
+  "id": "case_12",
+  "lang": "pt",
+  "title": "Renovação de receita — demanda administrativa não urgente",
+  "source": "Caso sintético baseado no fluxograma do Protocolo de Manchester 'Adulto indisposto'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Margarida Souza",
+    "age": 58,
+    "sex": "F",
+    "chief_complaint": "Acabou o medicamento para pressão há 2 dias, precisa renovar receita, sentindo-se bem",
+    "symptoms": ["sem sintomas agudos"],
+    "onset": "Medicamento acabou há 2 dias",
+    "pain_scale": 0,
+    "vital_signs": {
+      "heart_rate": 74,
+      "blood_pressure": "138/86",
+      "respiratory_rate": 15,
+      "temperature": 36.6,
+      "spo2": 98.0
+    },
+    "history": ["hipertensão", "bem controlada há 5 anos"],
+    "medications": ["anlodipino 5mg diário — acabou"],
+    "allergies": ["sulfonamidas"],
+    "notes": "Paciente em bom estado geral, sem sinais de desconforto. Veio ao PS porque a UBS está fechada no fim de semana. Sem cefaleia, dor torácica, alterações visuais ou outros sintomas. Pressão arterial levemente elevada, porém paciente relata ser habitual quando sem medicação."
+  }
+}

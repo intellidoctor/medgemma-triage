@@ -1,0 +1,28 @@
+{
+  "id": "case_09",
+  "lang": "en",
+  "title": "Medication refill request — non-urgent administrative",
+  "source": "Synthetic case based on Manchester Triage System flowchart 'Unwell Adult'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Margaret Liu",
+    "age": 58,
+    "sex": "F",
+    "chief_complaint": "Ran out of blood pressure medication 2 days ago, needs prescription refill, feeling fine",
+    "symptoms": ["no acute symptoms"],
+    "onset": "Medication ran out 2 days ago",
+    "pain_scale": 0,
+    "vital_signs": {
+      "heart_rate": 74,
+      "blood_pressure": "138/86",
+      "respiratory_rate": 15,
+      "temperature": 36.6,
+      "spo2": 98.0
+    },
+    "history": ["hypertension", "well-controlled for 5 years"],
+    "medications": ["amlodipine 5mg daily — ran out"],
+    "allergies": ["sulfa drugs"],
+    "notes": "Patient well-appearing, no distress. Came to ER because primary care office is closed on weekend. No headache, chest pain, visual changes, or other symptoms. Blood pressure mildly elevated but patient reports this is typical when off medication."
+  }
+}

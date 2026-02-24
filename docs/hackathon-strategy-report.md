@@ -208,8 +208,77 @@ Three converging crises:
 - [Harvard Hackathon: Digital AI Solutions for Healthcare](https://hsph.harvard.edu/news/hackathon-sparks-digital-ai-solutions-to-improve-health-care/)
 
 
-# Immediate Next Steps for Project Enhancement
+# Ideas for the video and writeup
 
-1. Test without mock data [done]
-2. Create 5 synthetic validation cases (one per Manchester level) with protocol-derived gold-standard labels and unambiguous discriminators
-3. Display MedGemma's reasoning and key_discriminators in the Streamlit UI as expandable sections (model already outputs structured reasoning — just needs to be surfaced to the nurse)
+## Video
+
+1. Present myself and Intellidoctor+ what we do
+
+2. Present the project (Agentic Workflow Prize track) and motivation
+
+### SUS Scale & ER Overcrowding
+
+- SUS is the **largest public health system in the world** serving a population of over 200 million, with ~75% relying on it exclusively.
+  > "To date, Brazil is considered to be the only country with a population of more than 200 million people to have a universal health care system, and approximately 75% of the population uses SUS exclusively."
+  — Piau Figueiredo et al. (2021), [Frontiers in Public Health – Brazilian Strategies](https://pmc.ncbi.nlm.nih.gov/articles/PMC8244723/)
+
+- A single UPA (Emergency Care Unit) sees **~300 patients per day**, with the vast majority classified as low-acuity (green). There are **446+ UPAs** across all Brazilian regions (O'Dwyer et al., 2017, [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC5718113/)). Overcrowding degrades care quality and inflates wait times — green patients wait an average of **4 hours**, twice the time recommended by the Manchester Protocol.
+  > "Of approximately 300 patients per day that enter the UPA system, approximately 210 patients are green, approximately 35 are yellow, and the remainder are blue, orange, or red patients."
+  — Vanbrabant et al. (2019), [SciELO – Reducing overcrowding in an emergency department](https://www.scielo.br/j/ramb/a/svtRwstmQrmDnZwkkjDyL4Q/?lang=en)
+
+  > "It reduces the quality of care, worsens the work environment, increases the time necessary to initiate appropriate patient treatment, and raises the cost of the healthcare system."
+  — Vanbrabant et al. (2019), [SciELO – Reducing overcrowding in an emergency department](https://www.scielo.br/j/ramb/a/svtRwstmQrmDnZwkkjDyL4Q/?lang=en)
+
+### Why Better Triage Matters — Manchester Protocol Limitations
+
+
+- **Undertriage is most frequent in orange-level (high urgency) patients — occurring in 27% of cases.** These are patients who should be seen quickly but get downgraded, risking treatment delays.
+  > "Overtriage was more frequent in level V of severity (blue color), occurring in 17% to 18% of cases. Undertriage was more frequent in level II of severity (orange color), occurring in 27% of cases."
+  — Souza et al. (2018), [SciELO – Reliability analysis of the MTS](https://www.scielo.br/j/rlae/a/VjS9jL9YLWGs9srC68yRPDf/)
+
+
+- The MTS performs **worse in older patients**, with inferior predictive ability for in-hospital mortality.
+  > "
+   inferior in older patients than younger patients, illustrated by a worse predictive ability of the MTS for in-hospital mortality in older patients."
+  — [ResearchGate – Performance of the MTS in older ED patients](https://www.researchgate.net/publication/330203835_Performance_of_the_Manchester_triage_system_in_older_emergency_department_patients_A_retrospective_cohort_study)
+
+### What is FHIR and How Brazil Uses It
+
+- **FHIR (Fast Healthcare Interoperability Resources)** is a standard developed by HL7 that defines how healthcare information can be exchanged between different computer systems regardless of how it is stored. It uses modern web technologies (RESTful APIs, JSON/XML) and breaks health data into modular "resources" (patient, condition, observation, etc.).
+  > "FHIR allows healthcare information, including clinical and administrative data, to be available securely to those who have a need to access it, and to those who have the right to do so for the benefit of a patient receiving care."
+  — [HealthIT.gov – What Is HL7 FHIR](https://www.healthit.gov/sites/default/files/page/2021-04/What%20Is%20FHIR%20Fact%20Sheet.pdf)
+
+  > "FHIR is free to use with no restrictions, and has support from major vendors including Apple, Microsoft, Google, Epic, Cerner, and most other EHR vendors."
+  — [HealthIT.gov – FHIR](https://healthit.gov/interoperability/investments/fhir/)
+
+### Brazil-Specific Opportunity + Impact Potential
+
+- Brazil's **RNDS (Rede Nacional de Dados em Saude)** is a FHIR-based national health data platform launched in 2020. As of May 2024:
+  - **1.4 billion+ vaccine registries**
+  - **~74 million COVID-19 and Monkeypox exam results**
+  - **84.4 million primary care encounters** (started flowing to RNDS at end of 2023)
+  > "There are more than 1 billion 400 hundred vaccine registries and approximately 74 million results of COVID-19 and Monkeypox exams on the RNDS repository. [...] Currently, 84.4 million primary care encounters are available on RNDS."
+  — [Oxford Academic – Brazilian international patient summary initiative (2024)](https://academic.oup.com/oodh/article/doi/10.1093/oodh/oqae015/7667343)
+
+- RNDS uses **FHIR-based RESTful APIs** and organizes data as FHIR Compositions. The strategic vision: **by 2028, RNDS will be the digital platform for innovation, information, and healthcare services for all of Brazil.**
+  > "RNDS is a database organized in clinical documents (FHIR compositions), one for each type of information: immunization registries, laboratory results, and primary care encounters."
+  — [Oxford Academic – Brazilian IPS initiative](https://academic.oup.com/oodh/article/doi/10.1093/oodh/oqae015/7667343)
+
+- **FHIR is mandated as Brazil's national health data standard**. The Brazilian IPS (International Patient Summary) was built using FHIR ShortHand and FHIR IG Publisher, and is expected to be fully operational in the "Meu SUS Digital" app.
+  > "The ESD20-28 vision statement says: 'By 2028, RNDS will be established and recognized as the digital platform for innovation, informati
+  on, and healthcare services for all of Brazil.'"
+  — [Oxford Academic – Brazilian IPS initiative](https://academic.oup.com/oodh/article/doi/10.1093/oodh/oqae015/7667343)
+
+- **Deployment reality check**: Many municipalities lack stable internet, updated equipment, or trained staff. Our solution accounts for this with lightweight FHIR bundle generation that can work offline and sync when connected.
+  > "Many municipalities lack stable internet, updated equipment, or staff trained in digital tools."
+  — [Frontiers – Electronic health records in Brazil](https://www.frontiersin.org/journals/public-health/articles/10.3389/fpubh.2022.963841/full)
+
+- **Portuguese language support is essential** — SUS serves a Portuguese-speaking population, and MedGemma's multilingual capabilities enable native-language clinical reasoning.
+
+3. Why use Medgemma [in writeup not video]
+
+4. Why use LangGraph: [in writeup not video]
+    - Easily introduce the human in the loop
+    - easy to audit, we can look at each step's data
+
+

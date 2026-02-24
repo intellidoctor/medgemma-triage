@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "triage_pipeline": "./src/pipeline/orchestrator.py:build_graph"
+  },
+  "env": ".env"
+}

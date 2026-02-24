@@ -1,0 +1,28 @@
+{
+  "id": "case_11",
+  "lang": "pt",
+  "title": "Laceração superficial em dedo — ferimento menor",
+  "source": "Caso sintético baseado no fluxograma do Protocolo de Manchester 'Feridas'",
+  "expected_triage": null,
+  "expected_reasoning": null,
+  "patient": {
+    "name": "Carlos Mendes",
+    "age": 35,
+    "sex": "M",
+    "chief_complaint": "Cortou o dedo indicador cozinhando há cerca de 1 hora, ferimento pequeno ainda sangrando levemente",
+    "symptoms": ["laceração pequena no dedo indicador esquerdo", "sangramento leve controlado com pressão", "dor leve"],
+    "onset": "1 hora atrás cortando legumes",
+    "pain_scale": 2,
+    "vital_signs": {
+      "heart_rate": 72,
+      "blood_pressure": "120/76",
+      "respiratory_rate": 14,
+      "temperature": 36.5,
+      "spo2": 99.0
+    },
+    "history": [],
+    "medications": [],
+    "allergies": [],
+    "notes": "Laceração superficial de 1,5 cm na face palmar do dedo indicador esquerdo. Sangramento controlado com pressão direta. Amplitude de movimento completa preservada. Sensibilidade distal intacta. Sem envolvimento de tendão. Última dose de antitetânica há 3 anos."
+  }
+}
