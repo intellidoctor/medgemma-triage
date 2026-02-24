@@ -35,5 +35,5 @@ Thumbs.db
 notes/
 
 
-#
+# LangGraph API cache
 .langgraph_api/

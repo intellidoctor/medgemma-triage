@@ -300,16 +300,6 @@ def _render_sidebar(s: dict[str, str], lang: str) -> None:
             st.rerun()
 
         st.divider()
-        # LangGraph Studio option REMOVED from UI per instruction.
-        # st.checkbox(
-        #     "LangGraph Studio",
-        #     value=False,
-        #     key="use_langgraph_studio",
-        #     help="Route pipeline through LangGraph dev server "
-        #     "(requires `langgraph dev` running on port 2024)",
-        # )
-
-        st.divider()
         st.caption(s["sidebar_disclaimer"])
         st.caption(s["sidebar_synthetic"])
 
