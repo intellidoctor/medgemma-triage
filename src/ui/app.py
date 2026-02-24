@@ -300,6 +300,16 @@ def _render_sidebar(s: dict[str, str], lang: str) -> None:
             st.rerun()
 
         st.divider()
+        # LangGraph Studio option REMOVED from UI per instruction.
+        # st.checkbox(
+        #     "LangGraph Studio",
+        #     value=False,
+        #     key="use_langgraph_studio",
+        #     help="Route pipeline through LangGraph dev server "
+        #     "(requires `langgraph dev` running on port 2024)",
+        # )
+
+        st.divider()
         st.caption(s["sidebar_disclaimer"])
         st.caption(s["sidebar_synthetic"])
 
@@ -601,8 +611,12 @@ def _render_fhir_output(fhir_bundle: dict, s: dict[str, str]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
-    """Main entry point for the Streamlit dashboard."""
+def main(use_studio: bool = False) -> None:
+    """Main entry point for the Streamlit dashboard.
+
+    Args:
+        use_studio (bool): If True, route pipeline through LangGraph Studio (dev server).
+    """
     lang: str = st.session_state.get("lang", "pt")
     s = get_strings(lang)
 
@@ -636,13 +650,9 @@ def main() -> None:
                     p_sex = form_data["sex"]
 
                     if use_real:
-                        # Set to True to route through LangGraph dev server
-                        # (requires `langgraph dev` running on port 2024)
-                        use_studio = False
                         logger.info(
                             "\033[1;34m\U0001f3e5 Starting LangGraph "
-                            "triage pipeline (studio=%s)...\033[0m",
-                            use_studio,
+                            f"triage pipeline (studio={use_studio})...\033[0m"
                         )
                         t0 = time.time()
                         pipeline_result = run_pipeline(
@@ -704,4 +714,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # Change to main(use_studio=...) with fixed value, to avoid use_langgraph_studio showing in UI
+    main(use_studio=False)

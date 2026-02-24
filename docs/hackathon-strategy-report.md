@@ -218,20 +218,16 @@ Three converging crises:
 
 ### SUS Scale & ER Overcrowding
 
-- SUS is the **largest government-run public health system in the world**, covering virtually 100% of Brazil's ~220 million people, with over 50,000 clinics. About **164 million Brazilians (72%) rely on SUS as their sole provider** of health services.
-  > "According to the Brazilian Institute of Geography and Statistics (IBGE), SUS is the sole provider of health services for approximately 72% of the population."
-  — [Commonwealth Fund – Brazil Health Profile](https://www.commonwealthfund.org/international-health-policy-center/countries/brazil)
+- SUS is the **largest public health system in the world** serving a population of over 200 million, with ~75% relying on it exclusively.
+  > "To date, Brazil is considered to be the only country with a population of more than 200 million people to have a universal health care system, and approximately 75% of the population uses SUS exclusively."
+  — Piau Figueiredo et al. (2021), [Frontiers in Public Health – Brazilian Strategies](https://pmc.ncbi.nlm.nih.gov/articles/PMC8244723/)
 
-- Brazil has **464 UPAs (Emergency Care Units)** operating 24h. Classified by size: Porte I handles up to 150 patients/day, Porte II up to 300/day, and Porte III up to 450/day.
-  > "UPAs are classified by size: Porte I can attend up to 150 patients/day (covering 50K–100K population), Porte II up to 300 patients/day (100K–200K population), and Porte III up to 450 patients/day (200K–300K population)."
-  — [Wikipedia – Unidade de Pronto Atendimento](https://en.wikipedia.org/wiki/Unidade_de_Pronto_Atendimento)
+- A single UPA (Emergency Care Unit) sees **~300 patients per day**, with the vast majority classified as low-acuity (green). There are **446+ UPAs** across all Brazilian regions (O'Dwyer et al., 2017, [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC5718113/)). Overcrowding degrades care quality and inflates wait times — green patients wait an average of **4 hours**, twice the time recommended by the Manchester Protocol.
+  > "Of approximately 300 patients per day that enter the UPA system, approximately 210 patients are green, approximately 35 are yellow, and the remainder are blue, orange, or red patients."
+  — Vanbrabant et al. (2019), [SciELO – Reducing overcrowding in an emergency department](https://www.scielo.br/j/ramb/a/svtRwstmQrmDnZwkkjDyL4Q/?lang=en)
 
-- ER wait times in public facilities can reach **up to 6 hours**, compared to 30 minutes in private hospitals. An estimated **30–50% of ED visits don't actually require emergency care** and could be handled in primary care.
-  > "Average ER visit times can range from just 30 minutes in some private hospitals to as long as six hours in overcrowded public facilities."
-  — [FlyReva – Average Emergency Room Waiting Times By Country](https://www.flyreva.com/blog/average-emergency-room-wait-times/)
-
-  > "Around 30-50% of ED visits don't actually require emergency care and could be handled just as well in primary care or urgent care clinics."
-  — [PMC – Overcrowding in Emergency Departments](https://pmc.ncbi.nlm.nih.gov/articles/PMC9498666/)
+  > "It reduces the quality of care, worsens the work environment, increases the time necessary to initiate appropriate patient treatment, and raises the cost of the healthcare system."
+  — Vanbrabant et al. (2019), [SciELO – Reducing overcrowding in an emergency department](https://www.scielo.br/j/ramb/a/svtRwstmQrmDnZwkkjDyL4Q/?lang=en)
 
 ### Why Better Triage Matters — Manchester Protocol Limitations
 
@@ -240,16 +236,10 @@ Three converging crises:
   > "Overtriage was more frequent in level V of severity (blue color), occurring in 17% to 18% of cases. Undertriage was more frequent in level II of severity (orange color), occurring in 27% of cases."
   — Souza et al. (2018), [SciELO – Reliability analysis of the MTS](https://www.scielo.br/j/rlae/a/VjS9jL9YLWGs9srC68yRPDf/)
 
-- A systematic review found the MTS has an overall **undertriage rate of 11–25%**, with low sensitivity in predicting higher urgency levels, raising patient safety concerns.
-  > "Its safety was low because of the high rate of undertriage and the low sensitivity in predicting higher urgency levels."
-  — Parenti et al. (2014), [ScienceDirect – Systematic review on MTS validity](https://www.sciencedirect.com/science/article/abs/pii/S0020748914000200)
-
-- Undertriage disproportionately affects **chest pain, shortness of breath, collapse, stomach pain, and infections** — exactly the high-stakes cases where AI can provide structured decision support.
-  > "Under-triage related mostly to patients with chest pain, shortness of breath, collapse, stomach pain, and infections."
-  — Storm-Versloot et al. (2011), [PubMed – Undertriage in the MTS](https://pubmed.ncbi.nlm.nih.gov/21459879/)
 
 - The MTS performs **worse in older patients**, with inferior predictive ability for in-hospital mortality.
-  > "The performance of the MTS appeared inferior in older patients than younger patients, illustrated by a worse predictive ability of the MTS for in-hospital mortality in older patients."
+  > "
+   inferior in older patients than younger patients, illustrated by a worse predictive ability of the MTS for in-hospital mortality in older patients."
   — [ResearchGate – Performance of the MTS in older ED patients](https://www.researchgate.net/publication/330203835_Performance_of_the_Manchester_triage_system_in_older_emergency_department_patients_A_retrospective_cohort_study)
 
 ### What is FHIR and How Brazil Uses It
