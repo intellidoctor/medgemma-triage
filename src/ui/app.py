@@ -605,7 +605,7 @@ def main(use_studio: bool = False) -> None:
     """Main entry point for the Streamlit dashboard.
 
     Args:
-        use_studio (bool): If True, route pipeline through LangGraph Studio (dev server).
+        use_studio: Route pipeline through LangGraph Studio.
     """
     lang: str = st.session_state.get("lang", "pt")
     s = get_strings(lang)
@@ -704,5 +704,5 @@ def main(use_studio: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    # Change to main(use_studio=...) with fixed value, to avoid use_langgraph_studio showing in UI
+    # use_studio=True routes through LangGraph dev server
     main(use_studio=False)
