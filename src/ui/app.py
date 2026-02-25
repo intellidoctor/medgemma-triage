@@ -19,9 +19,7 @@ from src.agents.triage import (
     TriageResult,
     VitalSigns,
 )
-from src.fhir.builder import build_fhir_bundle
 from src.pipeline.orchestrator import run_pipeline
-from src.ui.mock_services import mock_classify as classify_patient
 from src.ui.strings import get_strings
 
 logger = logging.getLogger(__name__)
@@ -198,7 +196,6 @@ def _init_session_state() -> None:
         "fhir_bundle": None,
         "image_findings": None,
         "selected_case": None,
-        "use_real_model": False,
         "lang": "pt",
     }
     for key, value in defaults.items():
@@ -237,27 +234,6 @@ def _render_sidebar(s: dict[str, str], lang: str) -> None:
             f'<h3 style="color: #B8B0D8 !important;">{s["sidebar_header"]}</h3>',
             unsafe_allow_html=True,
         )
-        # --- Sample cases (mock) — hidden for now ---
-        # st.divider()
-        # st.header(s["sidebar_sample_cases"])
-        # cases = get_sample_cases(lang)
-        # case_names = [s["sidebar_select_placeholder"]] + [
-        #     c["name"] for c in cases
-        # ]
-        # selected = st.selectbox(
-        #     s["sidebar_load_case"],
-        #     case_names,
-        #     key="case_selector",
-        # )
-        # if selected != s["sidebar_select_placeholder"]:
-        #     for case in cases:
-        #         if case["name"] == selected:
-        #             st.session_state["selected_case"] = case
-        #             st.session_state["use_real_model"] = False
-        #             break
-        # else:
-        #     if not st.session_state.get("use_real_model"):
-        #         st.session_state["selected_case"] = None
 
         # Handle pending resets before widgets are instantiated
         if st.session_state.get("_pending_clear"):
@@ -283,16 +259,13 @@ def _render_sidebar(s: dict[str, str], lang: str) -> None:
                 label = f"{tc['_test_case_id']}: {tc['name']}"
                 if label == test_selected:
                     st.session_state["selected_case"] = tc
-                    st.session_state["use_real_model"] = True
                     break
         else:
             st.session_state["selected_case"] = None
-            st.session_state["use_real_model"] = False
 
         st.divider()
         if st.button(s["sidebar_clear"]):
             st.session_state["selected_case"] = None
-            st.session_state["use_real_model"] = False
             st.session_state["triage_result"] = None
             st.session_state["fhir_bundle"] = None
             st.session_state["image_findings"] = None
@@ -618,8 +591,6 @@ def main(use_studio: bool = False) -> None:
         unsafe_allow_html=True,
     )
 
-    use_real = st.session_state.get("use_real_model", False)
-
     _render_sidebar(s, lang)
 
     col_left, col_right = st.columns([3, 2], gap="large")
@@ -639,48 +610,38 @@ def main(use_studio: bool = False) -> None:
                     p_age = form_data["age"] if form_data["age"] > 0 else None
                     p_sex = form_data["sex"]
 
-                    if use_real:
+                    logger.info(
+                        "\033[1;34m\U0001f3e5 Starting LangGraph "
+                        f"triage pipeline (studio={use_studio})...\033[0m"
+                    )
+                    t0 = time.time()
+                    pipeline_result = run_pipeline(
+                        patient_data=patient_data,
+                        image_bytes=st.session_state.get("uploaded_image_bytes"),
+                        image_mime_type=st.session_state.get(
+                            "uploaded_image_mime", "image/jpeg"
+                        ),
+                        lang=lang,
+                        patient_name=p_name,
+                        patient_age=p_age,
+                        patient_sex=p_sex,
+                        use_langgraph_studio=use_studio,
+                    )
+                    elapsed = time.time() - t0
+                    result = pipeline_result.get("triage_result")
+                    fhir_bundle = pipeline_result.get("fhir_bundle")
+                    errors = pipeline_result.get("errors", [])
+                    if errors:
+                        logger.warning(
+                            "\033[33m\u26a0\ufe0f Pipeline errors: " "%s\033[0m",
+                            errors,
+                        )
+                    if result:
                         logger.info(
-                            "\033[1;34m\U0001f3e5 Starting LangGraph "
-                            f"triage pipeline (studio={use_studio})...\033[0m"
-                        )
-                        t0 = time.time()
-                        pipeline_result = run_pipeline(
-                            patient_data=patient_data,
-                            image_bytes=st.session_state.get("uploaded_image_bytes"),
-                            image_mime_type=st.session_state.get(
-                                "uploaded_image_mime", "image/jpeg"
-                            ),
-                            lang=lang,
-                            patient_name=p_name,
-                            patient_age=p_age,
-                            patient_sex=p_sex,
-                            use_langgraph_studio=use_studio,
-                        )
-                        elapsed = time.time() - t0
-                        result = pipeline_result.get("triage_result")
-                        fhir_bundle = pipeline_result.get("fhir_bundle")
-                        errors = pipeline_result.get("errors", [])
-                        if errors:
-                            logger.warning(
-                                "\033[33m\u26a0\ufe0f Pipeline errors: " "%s\033[0m",
-                                errors,
-                            )
-                        if result:
-                            logger.info(
-                                "\033[1;32m\U0001f3c1 Pipeline result: "
-                                "%s in %.1fs\033[0m",
-                                result.triage_color.value,
-                                elapsed,
-                            )
-                    else:
-                        result = classify_patient(patient_data, lang=lang)
-                        fhir_bundle = build_fhir_bundle(
-                            patient_name=p_name,
-                            patient_age=p_age,
-                            patient_sex=p_sex,
-                            patient_data=patient_data,
-                            triage_result=result,
+                            "\033[1;32m\U0001f3c1 Pipeline result: "
+                            "%s in %.1fs\033[0m",
+                            result.triage_color.value,
+                            elapsed,
                         )
                     st.session_state["triage_result"] = result
                     st.session_state["fhir_bundle"] = fhir_bundle
